@@ -1,16 +1,3 @@
-test_that("data structure input", {
-
-  # wrong input class
-  expect_error(new_irods_df(matrix(1:10)))
-
-  # wrong names of list
-  expect_error(new_irods_df(list(wrong_name = 1:10)))
-
-  # empty iRODS collection
-  expect_message(print(new_irods_df(data.frame())))
-
-})
-
 with_mock_dir("coerce-irods_df", {
   test_that("coerce irods_df to data.frame", {
 

@@ -31,10 +31,10 @@ Imports:
     jsonlite,
     rappdirs,
     stats,
-    testthat (>= 3.0.0),
     utils,
     withr
 Suggests: 
+    testthat (>= 3.0.0),
     httptest2,
     kableExtra,
     knitr,

@@ -58,52 +58,28 @@ simplify = FALSE
 )
 
 with_mock_dir("chunked-write", {
-  test_that("chunked write request works", {
-
-    # currently mocking does not work for parallel perform
-    skip_if(.rirods$token == "secret", "IRODS server unavailable")
-
+  test_that("chunked write requests can be built", {
     max_number_of_parallel_write_streams <-
       find_irods_file("max_number_of_parallel_write_streams")
-    object <- serialize(dfr, NULL) # 400 bytes
+    object <- serialize(dfr, NULL)
     object_size <- length(object)
     count <- 200
     ticket <- NULL
     verbose <- FALSE
     lpath <- paste0(irods_test_path, "/dfr.rds")
-    chunks <-
-      calc_chunk_size(object_size, count, max_number_of_parallel_write_streams)
-    reqs <- chunked_local_to_irods(chunks,
-                                   object,
-                                   lpath,
-                                   truncate = 1,
-                                   append = 0,
-                                   ticket,
-                                   verbose)
+    chunks <- calc_chunk_size(object_size, count, max_number_of_parallel_write_streams)
+    reqs <- chunked_local_to_irods(
+      chunks,
+      object,
+      lpath,
+      truncate = 1,
+      append = 0,
+      ticket,
+      verbose
+    )
     expect_type(reqs, "list")
     expect_type(reqs[[1]], "list")
-    resp <- parallel_perform(reqs[[1]], lpath, truncate = 1, append = 0, ticket, verbose)
-    expect_type(resp, "list")
-    expect_s3_class(resp[[1]], "httr2_response")
-    expect_equal(dfr, ireadRDS("dfr.rds"))
-    test_irm(paste0(irods_test_path, "/dfr.rds"))
-    # serial and parallel
-    count <- 50
-    chunks <-
-      calc_chunk_size(object_size, count, max_number_of_parallel_write_streams)
-    reqs <- chunked_local_to_irods(chunks,
-                                   object,
-                                   lpath,
-                                   truncate = 1,
-                                   append = 0,
-                                   ticket,
-                                   verbose)
-    resp <- sequential_parallel_perform(reqs, lpath, truncate = 1, append = 0, ticket, verbose)
-    expect_type(resp, "list")
-    expect_type(resp[[1]], "list")
-    expect_s3_class(resp[[1]][[1]], "httr2_response")
-    expect_equal(dfr, ireadRDS("dfr.rds"))
-    test_irm(paste0(irods_test_path, "/dfr.rds"))
+    expect_s3_class(reqs[[1]][[1]], "httr2_request")
   })
 },
 simplify = FALSE

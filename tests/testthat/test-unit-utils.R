@@ -3,10 +3,7 @@ test_that("maxamimum number of rows query can be changed by user", {
     maximum_number_of_rows_catalog(16),
     find_irods_file("max_number_of_rows_per_catalog_query")
   )
-  expect_equal(
-    maximum_number_of_rows_catalog(2),
-    2L
-  )
+  expect_equal(maximum_number_of_rows_catalog(2), 2L)
 })
 
 test_that("maxamimum number of rows returned irods_df can be changed by user", {
@@ -21,14 +18,15 @@ test_that("maxamimum number of rows returned irods_df can be changed by user", {
     nrow(as.data.frame(limit_maximum_number_of_rows_catalog(ref, 2L))),
     2L
   )
-  ref <- structure(
-    list(),
-    row.names = 0L,
-    class = "data.frame"
-  )
+  ref <- structure(list(), row.names = 0L, class = "data.frame")
   expect_equal(
     nrow(as.data.frame(limit_maximum_number_of_rows_catalog(ref, 1L))),
     1L
   )
   expect_error(limit_maximum_number_of_rows_catalog(data.frame()))
+})
+
+test_that("write stops by local file", {
+  expect_error(stop_local_overwrite(FALSE, "dfr.csv"))
+  expect_null(stop_local_overwrite(TRUE, "dfr.csv"))
 })
