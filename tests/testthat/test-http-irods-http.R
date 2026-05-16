@@ -1,7 +1,6 @@
 with_mock_dir("collection-http", {
   test_that("all operation for collections 200 OK", {
     endpoint = "collections"
-    # imkdir
     args <- list(
       op = "create",
       lpath = paste0(irods_test_path, "/new"),
@@ -14,40 +13,35 @@ with_mock_dir("collection-http", {
     resp <- irods_http_call(endpoint, "POST", args, verbose = FALSE) |>
       httr2::req_perform()
     expect_equal(resp$status_code, 200L)
-    # ils with stat = TRUE
     args$`create-intermediates` <- NULL
     args$op <- "stat"
     args$lpath <- paste0(irods_test_path, "/new")
     resp <- irods_http_call(endpoint, "GET", args, verbose = FALSE) |>
       httr2::req_perform()
     expect_equal(resp$status_code, 200L)
-    # ils
     args$recurse <- 1
     args$op <- "list"
     args$lpath <- def_path
     resp <- irods_http_call(endpoint, "GET", args, verbose = FALSE) |>
       httr2::req_perform()
     expect_equal(resp$status_code, 200L)
-    # imeta
     args$recurse <- NULL
     args$op <- "modify_metadata"
-    args$operations <-
-      jsonlite::toJSON(list(
-        list(
-          operation = "add",
-          attribute = "foo",
-          value = "bar",
-          units = "baz"
-        )
-      ), auto_unbox = TRUE)
-    args$lpath <- paste0(irods_test_path,"/new")
+    args$operations <- jsonlite::toJSON(list(
+      list(
+        operation = "add",
+        attribute = "foo",
+        value = "bar",
+        units = "baz"
+      )
+    ), auto_unbox = TRUE)
+    args$lpath <- paste0(irods_test_path, "/new")
     resp <- irods_http_call(endpoint, "POST", args, verbose = FALSE) |>
       httr2::req_perform()
     expect_equal(resp$status_code, 200L)
-    # irequest
-    args$operations <- args$lpath  <- NULL
+    args$operations <- args$lpath <- NULL
     args$op <- "execute_genquery"
-    args$query <- collection_metadata(paste0(irods_test_path,"/new"))
+    args$query <- collection_metadata(paste0(irods_test_path, "/new"))
     args$offset <- 0
     args$count <- find_irods_file("max_number_of_rows_per_catalog_query")
     args$`case-sensitive` <- 1
@@ -58,7 +52,6 @@ with_mock_dir("collection-http", {
     resp <- irods_http_call("query", "GET", args, verbose = FALSE) |>
       httr2::req_perform()
     expect_equal(resp$status_code, 200L)
-    # irename
     args <- list()
     args$op <- "rename"
     args$`old-lpath` <- paste0(irods_test_path, "/new")
@@ -66,7 +59,6 @@ with_mock_dir("collection-http", {
     resp <- irods_http_call(endpoint, "POST", args, verbose = FALSE) |>
       httr2::req_perform()
     expect_equal(resp$status_code, 200L)
-    # irm
     args$`old-lpath` <- args$`new-lpath` <- NULL
     args$op <- "remove"
     args$recurse <- 1
@@ -83,11 +75,9 @@ with_mock_dir("info-http", {
   test_that("all information operations 200 OK", {
     endpoint <- "info"
     args <- list()
-    resp <-
-      irods_http_call(endpoint, "GET", args, verbose = FALSE) |>
+    resp <- irods_http_call(endpoint, "GET", args, verbose = FALSE) |>
       httr2::req_perform()
     expect_equal(resp$status_code, 200L)
-
   })
 },
 simplify = FALSE
@@ -95,13 +85,11 @@ simplify = FALSE
 
 with_mock_dir("http-erros", {
   test_that("error handling", {
-    # HTTP error
     endpoint = "data-objects"
     args <- list()
     args$op = "remove"
     req <- irods_http_call(endpoint, "POST", args, verbose = FALSE)
     expect_error(httr2::req_perform(req))
-    # iRODS error
     args$lpath <- ipwd()
     args$recurse <- 1
     req <- irods_http_call(endpoint, "POST", args, verbose = FALSE)
@@ -113,7 +101,6 @@ simplify = FALSE
 
 with_mock_dir("admin-http", {
   test_that("admin", {
-    # HTTP error
     endpoint = "users-groups"
     args <- list(
       op = "create_user",

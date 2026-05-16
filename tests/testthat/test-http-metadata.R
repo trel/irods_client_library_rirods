@@ -1,6 +1,5 @@
 with_mock_dir("metadata-1", {
   test_that("metadata works for collections" , {
-
     expect_invisible(
       imeta(
         irods_test_path,
@@ -12,7 +11,6 @@ with_mock_dir("metadata-1", {
     expect_invisible(q1 <- iquery(collection_metadata(def_path, recurse = TRUE)))
     expect_invisible(q2 <- iquery(collection_metadata(irods_test_path)))
 
-    # # reference `dataframe`
     ref <- structure(
       list(
         COLL_NAME = irods_test_path,
@@ -20,7 +18,7 @@ with_mock_dir("metadata-1", {
         META_COLL_ATTR_VALUE = "bar",
         META_COLL_ATTR_UNITS = "baz"
       ),
-      row.names = c(NA,-1L),
+      row.names = c(NA, -1L),
       class = "data.frame"
     )
 
@@ -33,11 +31,8 @@ simplify = FALSE
 
 with_mock_dir("metadata-2", {
   test_that("metadata works for data objects" , {
-
-    # test object
     test_iput(paste0(irods_test_path, "/dfr.csv"))
 
-    # single
     expect_invisible(
       imeta(
         "dfr.csv",
@@ -46,7 +41,6 @@ with_mock_dir("metadata-2", {
       )
     )
 
-    # double
     expect_invisible(
       imeta(
         "dfr.csv",
@@ -58,7 +52,6 @@ with_mock_dir("metadata-2", {
       )
     )
 
-    # # reference `dataframe`
     ref <- structure(
       list(
         META_DATA_ATTR_NAME = c("foo", "foo2"),
@@ -69,8 +62,7 @@ with_mock_dir("metadata-2", {
       class = "data.frame"
     )
 
-   expect_invisible(q <- iquery(data_object_metadata(irods_test_path, "dfr.csv")))
-
+    expect_invisible(q <- iquery(data_object_metadata(irods_test_path, "dfr.csv")))
     expect_s3_class(q, "data.frame")
     expect_equal(q, ref)
   })
@@ -80,15 +72,9 @@ simplify = FALSE
 
 with_mock_dir("metadata-3", {
   test_that("metadata works 3" , {
-    # In this check we address Issue #23:
-    # "Metadata columns in wrong order when some item has no metadata"
-
-    # For this we need a second `data_object`, but for the rest the test is the
-    # same as above "metadata works 2".
     some_object <- 1:10
     isaveRDS(some_object, "some_object.rds")
 
-    # reference `data.frame`
     ref <- structure(
       list(
         COLL_NAME = c(irods_test_path, irods_test_path),
@@ -111,29 +97,26 @@ simplify = FALSE
 
 with_mock_dir("metadata-errors", {
   test_that("metadata errors" , {
-    # In this check we address Issue #23:
-    # "The code would check and force that operations is a list of lists"
-
-    error_type1  <- c("x") # type error
+    error_type1  <- c("x")
     error_msg1 <- "The supplied `operations` should be of type `list` or `data.frame`."
 
-    expect_error(imeta("dfr.csv", operation =  error_type1), error_msg1)
+    expect_error(imeta("dfr.csv", operation = error_type1), error_msg1)
 
-    error_type2  <- list("x") # type error
+    error_type2  <- list("x")
     error_msg2 <- "The supplied list of `operations` should contain a named `list`."
 
-    expect_error(imeta("dfr.csv", operation =  error_type2), error_msg2)
+    expect_error(imeta("dfr.csv", operation = error_type2), error_msg2)
 
-    error_names1 <- list(list(x=1)) # naming error
-    error_names2 <- data.frame(x=1) # naming error
+    error_names1 <- list(list(x = 1))
+    error_names2 <- data.frame(x = 1)
     error_msg3 <- "The supplied `operations` should have names that can include \"operation\", \"attribute\", \"value\", \"units\"."
 
-    expect_error(imeta("dfr.csv", operation =  error_names1), error_msg3)
-    expect_error(imeta("dfr.csv", operation =  error_names2), error_msg3)
+    expect_error(imeta("dfr.csv", operation = error_names1), error_msg3)
+    expect_error(imeta("dfr.csv", operation = error_names2), error_msg3)
 
     error_content <- list(list(operation = "modify"))
     error_msg4 <- "The element \"operation\" of `operations` can contain \"add\" or \"remove\"."
-    expect_error(imeta("dfr.csv", operation =  error_content), error_msg4)
+    expect_error(imeta("dfr.csv", operation = error_content), error_msg4)
   })
 },
 simplify = FALSE
@@ -141,8 +124,6 @@ simplify = FALSE
 
 with_mock_dir("metadata-remove", {
   test_that("metadata removing works" , {
-
-    # remove metadata
     imeta(
       "dfr.csv",
       operations =
@@ -153,8 +134,6 @@ with_mock_dir("metadata-remove", {
     )
 
     expect_equal(iquery(data_object_metadata(irods_test_path)), list())
-
-    # clean-up
     test_irm(paste0(irods_test_path, "/dfr.csv"))
   })
 },

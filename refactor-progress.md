@@ -41,6 +41,10 @@ Completed:
 - moved `testthat` from `Imports` to `Suggests`
 - removed the stale `R/dev-helpers.R` entry from `.covrignore`
 - reran the refactored suite successfully in offline mode
+- moved the remaining bootstrap helpers out of `tests/testthat/setup.R` into `tests/testthat/helper-http.R`
+- renamed the remaining recorded/offline feature files to explicit `test-http-*` names
+- reran the suite after the helper move and file rename cleanup; the offline-capable tests still pass
+- allowed `testthat` to drop the now-unused snapshot file `tests/testthat/_snaps/data-objects.md`
 
 Observed during tooling setup:
 
@@ -202,15 +206,24 @@ Added dedicated live files:
 Added helper file:
 
 - `tests/testthat/helper-live.R`
+- `tests/testthat/helper-http.R`
 
-Trimmed mixed files to recorded/offline coverage:
+Recorded/offline files now use explicit `test-http-*` names:
 
-- `tests/testthat/test-authentication.R`
-- `tests/testthat/test-data-objects.R`
-- `tests/testthat/test-irods-conf.R`
-- `tests/testthat/test-irods-http.R`
-- `tests/testthat/test-irods-s3.R`
-- `tests/testthat/test-metadata.R`
+- `tests/testthat/test-http-authentication.R`
+- `tests/testthat/test-http-collections.R`
+- `tests/testthat/test-http-data-objects.R`
+- `tests/testthat/test-http-irods-conf.R`
+- `tests/testthat/test-http-irods-http.R`
+- `tests/testthat/test-http-irods-path.R`
+- `tests/testthat/test-http-navigation.R`
+- `tests/testthat/test-http-print.R`
+- `tests/testthat/test-http-s3.R`
+- `tests/testthat/test-http-metadata.R`
+
+`tests/testthat/setup.R` now only bootstraps test state and sources helper code from:
+
+- `tests/testthat/helper-http.R`
 
 Removed obsolete or superseded files:
 
@@ -248,16 +261,45 @@ Recorded/offline coverage remains in the existing feature files and contains:
 
 ## Remaining Cleanup Candidates
 
-1. move the helper functions currently defined at the top of `tests/testthat/setup.R` into dedicated `helper-*.R` files once setup-order concerns are handled cleanly
-2. split the remaining recorded/offline files into `test-http-*` names if a full naming cleanup is still desired
-3. remove the `.Rprofile` side effect that runs `cd dev && make` so test commands do not need environment overrides
-4. update CI to run `test-live-*` only when live integration is explicitly enabled
+1. remove the `.Rprofile` side effect that runs `cd dev && make` so test commands do not need environment overrides
+2. update CI to run `test-live-*` only when live integration is explicitly enabled
+3. consider moving fixtures out of `tests/testthat/` into a dedicated fixture tree if the harness rewrite continues
 
 ## Near-Term Next Steps
 
 1. finish the audit by marking the remaining mixed files at the individual `test_that()` block level
-2. move the copied helper functions from `tests/testthat/setup.R` into a dedicated `tests/testthat/helper-*.R` file once helper load order is confirmed
-3. start splitting pure config and utility tests into the `test-unit-*` files
-4. identify one stateful recorded-http file to rewrite first
-   - likely `test-navigation.R` or `test-collections.R`
-5. defer CI workflow edits until the test-mode boundaries are implemented in code
+2. update CI workflow boundaries now that the file naming split is in place
+3. remove or tame the `.Rprofile` side effect so routine test commands do not need environment overrides
+4. decide whether to continue into fixture relocation or stop at the naming and helper cleanup stage
+
+## Latest Test Run After Naming Cleanup
+
+Executed successfully:
+
+```text
+pkgload::load_all('.')
+testthat::test_dir('tests/testthat', reporter = 'summary')
+```
+
+Outcome:
+
+- passed offline files:
+  - `test-http-authentication.R`
+  - `test-http-collections.R`
+  - `test-http-data-objects.R` except the CRAN-skipped snapshot case
+  - `test-http-irods-conf.R`
+  - `test-http-irods-http.R`
+  - `test-http-irods-path.R`
+  - `test-http-metadata.R`
+  - `test-http-navigation.R`
+  - `test-http-print.R`
+  - `test-http-s3.R`
+  - `test-unit-config.R`
+  - `test-unit-s3.R`
+  - `test-unit-utils.R`
+- skipped as expected:
+  - all `test-live-*` files because `RIRODS_LIVE` is not enabled
+
+Side effect from the run:
+
+- `testthat` deleted the unused snapshot file `tests/testthat/_snaps/data-objects.md`

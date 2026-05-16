@@ -41,12 +41,11 @@ with_mock_dir("single-write", {
     httr2::req_perform(req)
     req <- irods_to_local(lpath, ticket = NULL, verbose = FALSE)
     expect_s3_class(req, "httr2_request")
-    con <- rawConnection(raw(0),  "a+b")
+    con <- rawConnection(raw(0), "a+b")
     on.exit(close(con))
     resp <- httr2::req_perform(req) |>
       httr2::resp_body_raw()
     writeBin(resp, con, useBytes = TRUE)
-    # currently mocking does not work
     if (.rirods$token != "secret") {
       y <- rawConnectionValue(con) |> unserialize()
       expect_equal(y, x)
@@ -123,18 +122,14 @@ simplify = FALSE
 
 with_mock_dir("write-read-data-objects", {
   test_that("write and read data-objects works", {
-
-    # R objects
-    expect_invisible(isaveRDS(dfr, "dfr.rds", overwrite = TRUE)) # overwrite = TRUE to circumvent additional API calls
-    # currently mocking does not work for ireadRDS streaming
+    expect_invisible(isaveRDS(dfr, "dfr.rds", overwrite = TRUE))
     if (.rirods$token != "secret") {
       expect_equal(dfr, ireadRDS("dfr.rds"))
     }
 
-    # external files
     expect_invisible(iput("dfr.csv", "dfr.csv", overwrite = TRUE))
-    unlink( "dfr.csv")
-    expect_invisible(out_path <- iget("dfr.csv",  "dfr.csv"))
+    unlink("dfr.csv")
+    expect_invisible(out_path <- iget("dfr.csv", "dfr.csv"))
     expect_equal(dfr, read.csv(out_path$body))
     write.csv(read.csv(out_path$body), "dfr.csv")
 

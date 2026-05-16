@@ -1,7 +1,5 @@
 with_mock_dir("coerce-irods_df", {
   test_that("coerce irods_df to data.frame", {
-
-    # some data
     test_iput(paste0(irods_test_path, "/dfr.csv"))
     test_imeta(
       paste0(irods_test_path, "/dfr.csv"),
@@ -12,13 +10,9 @@ with_mock_dir("coerce-irods_df", {
       endpoint = "data-objects"
     )
 
-    # iRODS Zone with metadata
     irods_zone <- ils(metadata = TRUE)
-
-    # check class
     expect_s3_class(irods_zone, "irods_df")
 
-    # coerce into `data.frame` and extract metadata of "dfr.csv"
     ref <- structure(
       list(
         logical_path = paste0(irods_test_path, "/dfr.csv"),
@@ -32,9 +26,7 @@ with_mock_dir("coerce-irods_df", {
     irods_zone <- as.data.frame(irods_zone)
     expect_equal(irods_zone, ref)
 
-    # delete object "dfr.csv"
     expect_invisible(irm("dfr.csv", force = TRUE))
-
   })
 },
 simplify = FALSE
