@@ -1,15 +1,20 @@
 on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main, dev]
   workflow_dispatch:
 
-name: refresh-http-fixtures
+name: live-integration
 
 jobs:
-  refresh-http-fixtures:
+  live-integration:
     runs-on: ubuntu-latest
 
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
+      RIRODS_LIVE: true
       R_PROFILE_USER: /dev/null
       R_ENVIRON_USER: /dev/null
       RENV_CONFIG_AUTOLOADER_ENABLED: FALSE
@@ -50,15 +55,11 @@ jobs:
           extra-packages: any::pkgload
           needs: check
 
-      - name: Refresh recorded HTTP fixtures
+      - name: Run live integration tests
         working-directory: ./rirods
         shell: Rscript {0}
         run: |
           pkgload::load_all(".", quiet = TRUE)
-          testthat::test_dir("tests/testthat", reporter = "summary")
-
-      - name: Upload refreshed test artifacts
-        uses: actions/upload-artifact@v3
-        with:
-          name: refreshed-http-fixtures
-          path: ./rirods/tests/testthat
+          for (path in Sys.glob("tests/testthat/test-live-*.R")) {
+            testthat::test_file(path, reporter = "summary")
+          }

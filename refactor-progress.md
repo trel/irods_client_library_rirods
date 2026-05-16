@@ -45,6 +45,7 @@ Completed:
 - renamed the remaining recorded/offline feature files to explicit `test-http-*` names
 - reran the suite after the helper move and file rename cleanup; the offline-capable tests still pass
 - allowed `testthat` to drop the now-unused snapshot file `tests/testthat/_snaps/data-objects.md`
+- split CI responsibilities so live integration and fixture refresh now have separate workflows
 
 Observed during tooling setup:
 
@@ -262,8 +263,8 @@ Recorded/offline coverage remains in the existing feature files and contains:
 ## Remaining Cleanup Candidates
 
 1. remove the `.Rprofile` side effect that runs `cd dev && make` so test commands do not need environment overrides
-2. update CI to run `test-live-*` only when live integration is explicitly enabled
-3. consider moving fixtures out of `tests/testthat/` into a dedicated fixture tree if the harness rewrite continues
+2. consider moving fixtures out of `tests/testthat/` into a dedicated fixture tree if the harness rewrite continues
+3. decide whether coverage should continue to include only offline tests or gain a separate live-aware coverage path
 
 ## Near-Term Next Steps
 
@@ -271,6 +272,43 @@ Recorded/offline coverage remains in the existing feature files and contains:
 2. update CI workflow boundaries now that the file naming split is in place
 3. remove or tame the `.Rprofile` side effect so routine test commands do not need environment overrides
 4. decide whether to continue into fixture relocation or stop at the naming and helper cleanup stage
+
+## CI Split Performed
+
+Added dedicated live integration workflow:
+
+- `.github/workflows/live-integration.yaml`
+
+This workflow:
+
+- runs on `push`, `pull_request`, and `workflow_dispatch`
+- provisions `irods_demo`
+- sets `RIRODS_LIVE=true`
+- runs only `tests/testthat/test-live-*.R`
+- leaves ordinary `R-CMD-check` and coverage workflows unchanged
+
+Updated fixture refresh workflow:
+
+- `.github/workflows/http-snapshots.yaml`
+
+This workflow now:
+
+- is manual only via `workflow_dispatch`
+- provisions `irods_demo`
+- refreshes recorded fixtures by running the test suite with live services available
+- uploads refreshed `tests/testthat` contents as an artifact
+- no longer commits or pushes fixture updates back to the repository automatically
+
+Intentionally unchanged during this step:
+
+- `.github/workflows/R-CMD-check.yaml`
+- `.github/workflows/test-coverage.yaml`
+
+Reason:
+
+- the live/offline test split is now enforced by file naming and `RIRODS_LIVE`
+- ordinary package checks already run the offline-capable suite by default
+- keeping those workflows stable limits CI risk while the harness refactor is still underway
 
 ## Latest Test Run After Naming Cleanup
 
