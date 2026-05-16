@@ -46,6 +46,8 @@ Completed:
 - reran the suite after the helper move and file rename cleanup; the offline-capable tests still pass
 - allowed `testthat` to drop the now-unused snapshot file `tests/testthat/_snaps/data-objects.md`
 - split CI responsibilities so live integration and fixture refresh now have separate workflows
+- changed `.Rprofile` so `dev && make` runs only when explicitly requested via `RIRODS_PREPARE_DEV_DEMO=true`
+- verified that the offline-capable suite now runs with only `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`; disabling the whole user profile is no longer required for these test commands
 
 Observed during tooling setup:
 
@@ -54,6 +56,7 @@ Observed during tooling setup:
   - `R_PROFILE_USER=/dev/null`
   - `R_ENVIRON_USER=/dev/null`
   - `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`
+- after the `.Rprofile` refactor, only `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE` is needed in this environment
 - `renv::restore()` against the lockfile was not reliable in this container because the locked `digest` version failed to build on this Alpine/R toolchain
 - as a practical test-running workaround, current CRAN versions of the required test packages were installed directly
 
@@ -266,12 +269,41 @@ Recorded/offline coverage remains in the existing feature files and contains:
 2. consider moving fixtures out of `tests/testthat/` into a dedicated fixture tree if the harness rewrite continues
 3. decide whether coverage should continue to include only offline tests or gain a separate live-aware coverage path
 
+Update:
+
+- the `dev && make` side effect has been removed from ordinary startup
+- the remaining override need is the renv autoloader, not project startup shelling out
+
 ## Near-Term Next Steps
 
 1. finish the audit by marking the remaining mixed files at the individual `test_that()` block level
 2. update CI workflow boundaries now that the file naming split is in place
 3. remove or tame the `.Rprofile` side effect so routine test commands do not need environment overrides
 4. decide whether to continue into fixture relocation or stop at the naming and helper cleanup stage
+
+## Startup Refactor Performed
+
+Updated project startup:
+
+- `.Rprofile`
+
+This change:
+
+- keeps the encrypted development environment variables in place
+- stops running `system("cd dev && make")` on every startup
+- makes that preparation step explicit via `RIRODS_PREPARE_DEV_DEMO=true`
+
+Validation:
+
+- `Rscript -e "cat('startup-ok\\n')"` now starts cleanly without triggering the `dev` make step
+- the offline-capable suite passes with only:
+  - `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`
+
+Follow-on cleanup applied:
+
+- removed `R_PROFILE_USER` and `R_ENVIRON_USER` overrides from:
+  - `.github/workflows/live-integration.yaml`
+  - `.github/workflows/http-snapshots.yaml`
 
 ## CI Split Performed
 
