@@ -67,11 +67,7 @@ iput <- function(
     ticket = NULL
   ) {
 
-  # deprecate arguments
-  if (!missing("offset"))
-    warning("Argument `offset` is deprecated")
-  if (!missing("count"))
-    warning("Argument `count` is deprecated")
+  deprecate_transfer_args(!missing(offset), !missing(count))
 
   # expand logical path to absolute logical path
   logical_path <- get_absolute_lpath(logical_path, write = TRUE)
@@ -94,17 +90,7 @@ iput <- function(
     verbose = verbose
   )
 
-  # check if transfer is chunked
-  if (inherits(reqs, "httr2_request")) {
-    resps <- httr2::req_perform(reqs)
-  } else {
-    resps <- sequential_parallel_perform(
-      reqs,
-      logical_path = logical_path,
-      ticket = ticket,
-      verbose = verbose
-    )
-  }
+  resps <- perform_write_requests(reqs, logical_path, ticket, verbose)
   invisible(resps)
 }
 
@@ -121,11 +107,7 @@ isaveRDS <- function(
     ticket = NULL
 ) {
 
-  # deprecate arguments
-  if (!missing("offset"))
-    warning("Argument `offset` is deprecated")
-  if (!missing("count"))
-    warning("Argument `count` is deprecated")
+  deprecate_transfer_args(!missing(offset), !missing(count))
 
   # expand logical path to absolute logical path
   logical_path <- get_absolute_lpath(logical_path, write = TRUE)
@@ -150,19 +132,31 @@ isaveRDS <- function(
     verbose = verbose
   )
 
-  # check if transfer is chunked
+  resps <- perform_write_requests(reqs, logical_path, ticket, verbose)
+
+  invisible(resps)
+}
+
+deprecate_transfer_args <- function(has_offset, has_count) {
+  if (isTRUE(has_offset)) {
+    warning("Argument `offset` is deprecated")
+  }
+  if (isTRUE(has_count)) {
+    warning("Argument `count` is deprecated")
+  }
+}
+
+perform_write_requests <- function(reqs, logical_path, ticket, verbose) {
   if (inherits(reqs, "httr2_request")) {
-    resps <- httr2::req_perform(reqs)
+    httr2::req_perform(reqs)
   } else {
-    resps <- sequential_parallel_perform(
+    sequential_parallel_perform(
       reqs,
       logical_path = logical_path,
       ticket = ticket,
       verbose = verbose
     )
   }
-
-  invisible(resps)
 }
 
 sequential_parallel_perform <- function(

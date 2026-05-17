@@ -118,6 +118,34 @@ test_that("sequential_parallel_perform only truncates and appends on the first b
   expect_identical(calls[[2]]$append, 0)
 })
 
+test_that("perform_write_requests chooses the correct execution path", {
+  req <- httr2::request("https://example.test/write")
+  single <- NULL
+  chunked <- NULL
+
+  testthat::with_mocked_bindings({
+    testthat::with_mocked_bindings({
+      single <- perform_write_requests(req, "/tempZone/home/alice/x", NULL, FALSE)
+    },
+    req_perform = function(req, ...) "single",
+    .package = "httr2"
+    )
+  },
+  sequential_parallel_perform = function(...) "chunked",
+  .package = "rirods"
+  )
+
+  testthat::with_mocked_bindings({
+    chunked <- perform_write_requests(list(req), "/tempZone/home/alice/x", NULL, FALSE)
+  },
+  sequential_parallel_perform = function(...) "chunked",
+  .package = "rirods"
+  )
+
+  expect_identical(single, "single")
+  expect_identical(chunked, "chunked")
+})
+
 test_that("parallel_perform adds the parallel write handle to each request", {
   seen_reqs <- NULL
   shutdown_handle <- NULL

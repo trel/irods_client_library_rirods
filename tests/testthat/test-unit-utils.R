@@ -23,7 +23,29 @@ test_that("maxamimum number of rows returned irods_df can be changed by user", {
     nrow(as.data.frame(limit_maximum_number_of_rows_catalog(ref, 1L))),
     1L
   )
-  expect_error(limit_maximum_number_of_rows_catalog(data.frame()))
+  expect_equal(nrow(limit_maximum_number_of_rows_catalog(data.frame(), 1L)), 0L)
+  expect_error(limit_maximum_number_of_rows_catalog(matrix(1), 1L))
+})
+
+test_that("imeta validates deprecated and unknown-path branches offline", {
+  testthat::with_mocked_bindings({
+    expect_warning(
+      expect_error(
+        imeta(
+          "missing",
+          entity_type = "data_object",
+          operations = list(list(operation = "add", attribute = "a", value = "b"))
+        ),
+        "Unkown operation"
+      ),
+      "deprecated"
+    )
+  },
+  get_absolute_lpath = function(lpath, ...) lpath,
+  is_collection = function(...) FALSE,
+  is_object = function(...) FALSE,
+  .package = "rirods"
+  )
 })
 
 test_that("write stops by local file", {

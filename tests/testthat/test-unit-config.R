@@ -67,3 +67,11 @@ test_that("create_irods protects existing configuration in interactive mode", {
   .package = "base"
   )
 })
+
+test_that("check_irods_conf errors on corrupted configuration", {
+  local_restore_irods_conf()
+
+  write("not-json", file = path_to_irods_conf())
+
+  expect_error(check_irods_conf(), "configuration file is corrupted")
+})

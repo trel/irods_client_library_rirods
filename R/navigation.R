@@ -57,59 +57,10 @@ icd <- function(dir) {
   # dir at start
   current_dir <- local(current_dir, envir = .rirods)
 
-  # get current dir
-  if (dir  == ".") {
-    new_dir <- current_dir
-  }
+  new_dir <- resolve_icd_path(dir, current_dir)
 
-  # get level lower
-  if (dir  == "..") {
-    new_dir <- sub(paste0("/", basename(current_dir)), "", current_dir)
-    if (new_dir == character(1))
-      new_dir <- "/"
-  }
-
-  # get requested dir
-  if (!dir %in% c(".", "..")) {
-
-    if(!grepl("^\\.{1,2}/", dir)) {
-
-      if (grepl("^\\/", dir)) {
-        # absolute path
-        new_dir <- dir
-      } else {
-        # relative path
-        new_dir <- paste0(current_dir, "/", dir)
-      }
-
-    } else {
-
-      if(grepl("^\\.{2}/", dir)) {
-
-        # movement relative path
-        icd("..")
-        base_dir <- local(current_dir, envir = .rirods)
-
-        new_dir <- paste0(
-          base_dir,
-          ifelse(base_dir == "/", "", "/"), sub("\\.\\./", "", dir)
-        )
-
-      } else if(grepl("^\\.{1}/", dir)) {
-
-        # no movement relative path
-        new_dir <- paste0(
-          current_dir,
-          ifelse(current_dir == "/", "", "/"), sub("\\./", "", dir)
-        )
-      }
-    }
-
-    # check if iRODS collection exists
-    if (!is_collection(new_dir))
-      stop("This is not a directory (collection).", call. = FALSE)
-
-    new_dir
+  if (!dir %in% c(".", "..") && !is_collection(new_dir)) {
+    stop("This is not a directory (collection).", call. = FALSE)
   }
 
   # store internally
@@ -117,6 +68,44 @@ icd <- function(dir) {
 
   # return location invisibly
   invisible(current_dir)
+}
+
+parent_irods_dir <- function(current_dir) {
+  parent_dir <- sub(paste0("/", basename(current_dir)), "", current_dir)
+  if (identical(parent_dir, character(1))) "/" else parent_dir
+}
+
+resolve_icd_path <- function(dir, current_dir) {
+  if (dir == ".") {
+    return(current_dir)
+  }
+
+  if (dir == "..") {
+    return(parent_irods_dir(current_dir))
+  }
+
+  if (!grepl("^\\.{1,2}/", dir)) {
+    if (grepl("^\\/", dir)) {
+      return(dir)
+    }
+
+    return(paste0(current_dir, "/", dir))
+  }
+
+  if (grepl("^\\.{2}/", dir)) {
+    base_dir <- parent_irods_dir(current_dir)
+    return(paste0(
+      base_dir,
+      ifelse(base_dir == "/", "", "/"),
+      sub("\\.\\./", "", dir)
+    ))
+  }
+
+  paste0(
+    current_dir,
+    ifelse(current_dir == "/", "", "/"),
+    sub("\\./", "", dir)
+  )
 }
 
 #' @rdname icd
