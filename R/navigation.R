@@ -234,39 +234,52 @@ make_ils_stat <- function(lpaths) {
 }
 
 make_ils_metadata <- function(lpath) {
-  metadata_collections <-
-    iquery(collection_metadata(lpath, recurse = TRUE))
-  metadata_data_objects <- iquery(data_object_metadata(lpath))
-  if (length(metadata_collections) == 0 && length(metadata_data_objects) == 0) {
+  metadata_collections <- normalize_ils_metadata(
+    iquery(collection_metadata(lpath, recurse = TRUE)),
+    type = "collection"
+  )
+  metadata_data_objects <- normalize_ils_metadata(
+    iquery(data_object_metadata(lpath)),
+    type = "data_object"
+  )
+
+  if (is.null(metadata_collections) && is.null(metadata_data_objects)) {
     message("No metadata")
     return(NULL)
-  } else if (length(metadata_data_objects) == 0) {
-    metadata <- metadata_collections
-  } else if (length(metadata_collections) == 0) {
-    metadata <- metadata_data_objects
-  } else {
-    metadata <-
-      rbind_unequal_shaped_dataframes(metadata_collections, metadata_data_objects)
   }
+
+  if (is.null(metadata_data_objects)) {
+    return(metadata_collections)
+  }
+
+  if (is.null(metadata_collections)) {
+    return(metadata_data_objects)
+  }
+
+  rbind_unequal_shaped_dataframes(metadata_collections, metadata_data_objects)
+}
+
+normalize_ils_metadata <- function(metadata, type = c("collection", "data_object")) {
+  type <- match.arg(type)
+
+  if (length(metadata) == 0 || NROW(metadata) == 0) {
+    return(NULL)
+  }
+
+  if (type == "collection") {
+    return(data.frame(
+      logical_path = metadata[["COLL_NAME"]],
+      attribute = metadata[["META_COLL_ATTR_NAME"]],
+      value = metadata[["META_COLL_ATTR_VALUE"]],
+      units = metadata[["META_COLL_ATTR_UNITS"]]
+    ))
+  }
+
   data.frame(
-    logical_path = paste0(metadata[["COLL_NAME"]],  ifelse(
-      is.na(metadata[["DATA_NAME"]]), "", paste0("/", metadata[["DATA_NAME"]])
-    )),
-    attribute = ifelse(
-      all(is.na(metadata[["META_COLL_ATTR_NAME"]])) ||
-        all(is.null(metadata[["META_COLL_ATTR_NAME"]])),
-     stats::na.omit(metadata["META_DATA_ATTR_NAME"]),
-     stats::na.omit(metadata["META_COLL_ATTR_NAME"]))[[1]],
-    value = ifelse(
-      all(is.na(metadata[["META_COLL_ATTR_VALUE"]])) ||
-        all(is.null(metadata[["META_COLL_ATTR_VALUE"]])),
-     stats::na.omit(metadata["META_DATA_ATTR_VALUE"]),
-     stats::na.omit(metadata["META_COLL_ATTR_VALUE"]))[[1]],
-    units = ifelse(
-      all(is.na(metadata[["META_COLL_ATTR_UNITS"]])) ||
-        all(is.null(metadata[["META_COLL_ATTR_UNITS"]])),
-     stats::na.omit(metadata["META_DATA_ATTR_UNITS"]),
-     stats::na.omit(metadata["META_COLL_ATTR_UNITS"]))[[1]]
+    logical_path = paste0(metadata[["COLL_NAME"]], "/", metadata[["DATA_NAME"]]),
+    attribute = metadata[["META_DATA_ATTR_NAME"]],
+    value = metadata[["META_DATA_ATTR_VALUE"]],
+    units = metadata[["META_DATA_ATTR_UNITS"]]
   )
 }
 

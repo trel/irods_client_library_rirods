@@ -33,11 +33,13 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 
 ### 3. `#62` `ils(metadata=TRUE)` results in errors
 
+- Status: Complete on current branch.
 - Priority: Very High
 - Type: Bug
 - Impact: High
 - Effort: Low
 - Why next: Clear user-facing failure with a likely contained fix. The issue description already points to the probable root cause and mentions that a fix may already exist.
+- Notes: Fixed by normalizing collection and data-object metadata rows in `make_ils_metadata()` and adding a regression test for mixed metadata results.
 
 ### 4. `#63` `ils(stat=TRUE)` and `ils(permissions=TRUE)` fail with an error when used on large collections
 
@@ -173,12 +175,12 @@ Reason:
 ## Suggested Next Agent Actions
 
 1. Review PR `#52` before starting new work.
-2. Determine whether `#51` and `#60` can be resolved by completing or adapting that PR.
-3. Inspect the `ils()` implementation for shared root causes behind `#60`, `#62`, and `#63`.
-4. Add or update regression tests for each fixed `ils()` scenario.
-5. After the `ils()` cluster is stable, move to test/auth issues `#55` and `#56`.
+2. Treat `#62` as complete on the current branch and avoid duplicating that fix.
+3. Determine whether `#51` and `#60` can be resolved by completing or adapting PR `#52`.
+4. Inspect the `ils()` implementation for shared root causes behind `#60` and `#63`.
+5. After the remaining `ils()` cluster is stable, move to test/auth issues `#55` and `#56`.
 
 ## Summary
 
-If choosing only one place to start, start with the `ils()` / navigation bug cluster: `#60`, `#51`, `#62`, and `#63`.
+If choosing only one place to start next, continue with the remaining `ils()` / navigation bug cluster: `#60`, `#51`, and `#63`.
 That is the best combination of high user impact, bug priority, and likely shared implementation effort.

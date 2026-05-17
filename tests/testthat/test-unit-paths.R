@@ -132,3 +132,41 @@ test_that("resolve_icd_path and ils helpers cover remaining offline branches", {
   .package = "rirods"
   )
 })
+
+test_that("make_ils_metadata aligns mixed collection and object metadata rows", {
+  collection_meta <- data.frame(
+    COLL_NAME = "/tempZone/home/alice/project",
+    META_COLL_ATTR_NAME = "project_attr",
+    META_COLL_ATTR_VALUE = "project_value",
+    META_COLL_ATTR_UNITS = "project_units"
+  )
+
+  object_meta <- data.frame(
+    COLL_NAME = c("/tempZone/home/alice/project", "/tempZone/home/alice/project"),
+    DATA_NAME = c("a.csv", "b.csv"),
+    META_DATA_ATTR_NAME = c("object_attr_1", "object_attr_2"),
+    META_DATA_ATTR_VALUE = c("object_value_1", "object_value_2"),
+    META_DATA_ATTR_UNITS = c("object_units_1", "object_units_2")
+  )
+
+  testthat::with_mocked_bindings({
+    expect_equal(
+      make_ils_metadata("/tempZone/home/alice/project"),
+      data.frame(
+        logical_path = c(
+          "/tempZone/home/alice/project",
+          "/tempZone/home/alice/project/a.csv",
+          "/tempZone/home/alice/project/b.csv"
+        ),
+        attribute = c("project_attr", "object_attr_1", "object_attr_2"),
+        value = c("project_value", "object_value_1", "object_value_2"),
+        units = c("project_units", "object_units_1", "object_units_2")
+      )
+    )
+  },
+  iquery = function(query, ...) {
+    if (grepl("META_COLL", query)) collection_meta else object_meta
+  },
+  .package = "rirods"
+  )
+})
