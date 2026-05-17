@@ -11,6 +11,16 @@ coverage](https://codecov.io/gh/irods/irods_client_library_rirods/branch/main/gr
 
 The rirods package is an R client for iRODS.
 
+## Development
+
+Run line coverage for the offline-capable test suite with:
+
+``` sh
+Rscript --no-init-file scripts/test-coverage.R
+```
+
+This writes coverage artifacts under `coverage/` and is the same command used by GitHub Actions.
+
 ## Installation
 
 You can install the latest CRAN version of rirods like so:

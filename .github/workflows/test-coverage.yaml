@@ -25,23 +25,19 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          extra-packages: any::covr
+          extra-packages: any::covr, any::xml2
           needs: coverage
 
       - name: Test coverage
-        run: |
-          covr::codecov(
-            quiet = FALSE,
-            clean = FALSE,
-            install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
-          )
-        shell: Rscript {0}
+        env:
+          RIRODS_COVERAGE_UPLOAD: true
+        run: Rscript --no-init-file scripts/test-coverage.R
 
       - name: Show testthat output
         if: always()
         run: |
           ## --------------------------------------------------------------------
-          find ${{ runner.temp }}/package -name 'testthat.Rout*' -exec cat '{}' \; || true
+          find coverage/package -name 'testthat.Rout*' -exec cat '{}' \; || true
         shell: bash
 
       - name: Upload test results
@@ -49,4 +45,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: coverage-test-failures
-          path: ${{ runner.temp }}/package
+          path: coverage/
