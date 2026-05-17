@@ -48,12 +48,21 @@ jobs:
           extra-packages: any::pkgload
           needs: check
 
+      - name: Remove recorded HTTP fixtures
+        working-directory: ./rirods
+        shell: Rscript {0}
+        run: |
+          pkgload::load_all(".", quiet = TRUE)
+          remove_mock_files()
+
       - name: Refresh recorded HTTP fixtures
         working-directory: ./rirods
         shell: Rscript {0}
         run: |
           pkgload::load_all(".", quiet = TRUE)
-          testthat::test_dir("tests/testthat", reporter = "summary")
+          for (path in Sys.glob("tests/testthat/test-http-*.R")) {
+            testthat::test_file(path, reporter = "summary")
+          }
 
       - name: Upload refreshed test artifacts
         uses: actions/upload-artifact@v3

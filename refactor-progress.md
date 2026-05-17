@@ -48,6 +48,7 @@ Completed:
 - split CI responsibilities so live integration and fixture refresh now have separate workflows
 - changed `.Rprofile` so `dev && make` runs only when explicitly requested via `RIRODS_PREPARE_DEV_DEMO=true`
 - verified that the offline-capable suite now runs with only `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`; disabling the whole user profile is no longer required for these test commands
+- corrected the manual fixture-refresh workflow so it removes existing recorded HTTP fixtures before replaying only the `test-http-*` suite
 
 Observed during tooling setup:
 
@@ -327,7 +328,7 @@ This workflow now:
 
 - is manual only via `workflow_dispatch`
 - provisions `irods_demo`
-- refreshes recorded fixtures by running the test suite with live services available
+- removes recorded HTTP fixtures before replaying only the `test-http-*` suite with live services available
 - uploads refreshed `tests/testthat` contents as an artifact
 - no longer commits or pushes fixture updates back to the repository automatically
 
