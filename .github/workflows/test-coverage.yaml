@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      RIRODS_LIVE: false
+      RENV_CONFIG_AUTOLOADER_ENABLED: FALSE
 
     steps:
       - uses: actions/checkout@v3

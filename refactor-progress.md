@@ -3,13 +3,17 @@
 ## Status
 
 - Started: test harness refactor from `refactor.md`
-- Active pieces:
-  - Piece 1: Audit And Classify Existing Tests
-  - Piece 2: Extract Test-Only Helpers Out Of Package Code
-  - Piece 3: Replace Global Setup With Small Local Helpers
-- First code change landed:
-  - duplicated the test-only helper functions into `tests/testthat/setup.R`
-  - kept `R/dev-helpers.R` in place for now to avoid a risky first removal
+- Core harness refactor complete
+- Test modes are now split into:
+  - `test-unit-*`
+  - `test-http-*`
+  - `test-live-*`
+- Recorded fixtures now live under:
+  - `tests/fixtures/httptest2/`
+- CI responsibilities are now split across:
+  - ordinary package checks and coverage
+  - live integration
+  - manual fixture refresh
 
 ## Work Log
 
@@ -277,8 +281,10 @@ That now points at a dedicated fixture tree under:
 
 ## Remaining Cleanup Candidates
 
-1. remove the `.Rprofile` side effect that runs `cd dev && make` so test commands do not need environment overrides
-2. decide whether coverage should continue to include only offline tests or gain a separate live-aware coverage path
+1. optional: add a separate live-aware coverage workflow if live-path coverage becomes important
+2. optional: further rewrite the recorded HTTP files so each `test_that()` owns all of its setup and cleanup independently
+
+These are follow-on improvements rather than blockers for the harness redesign.
 
 Update:
 
@@ -443,3 +449,19 @@ Outcome:
 Side effect from the run:
 
 - `testthat` deleted the unused snapshot file `tests/testthat/_snaps/data-objects.md`
+
+## Final CI Policy
+
+Ordinary CI now declares its intent explicitly:
+
+- `.github/workflows/R-CMD-check.yaml`
+- `.github/workflows/test-coverage.yaml`
+
+Both workflows now set:
+
+- `RIRODS_LIVE=false`
+- `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`
+
+This makes the default package check and coverage paths explicitly offline-only,
+while the dedicated live workflow remains the only place where live tests are
+enabled by default.
