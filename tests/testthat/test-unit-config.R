@@ -38,3 +38,32 @@ test_that("error on finding iRODS server information", {
   expect_error(find_irods_file("irods_zone"))
   file.copy(tmp, path_to_irods_conf())
 })
+
+test_that("create_irods writes configuration and warns on deprecated zone_path", {
+  local_restore_irods_conf()
+  unlink(path_to_irods_conf())
+
+  expect_warning(
+    path <- create_irods("https://example.test", zone_path = "/tempZone", overwrite = TRUE),
+    "deprecated"
+  )
+
+  expect_identical(path, path_to_irods_conf())
+  expect_identical(find_irods_file("host"), "https://example.test")
+})
+
+test_that("create_irods protects existing configuration in interactive mode", {
+  local_restore_irods_conf()
+
+  write(
+    jsonlite::toJSON(list(host = host), auto_unbox = TRUE, pretty = TRUE),
+    file = path_to_irods_conf()
+  )
+
+  testthat::with_mocked_bindings({
+    expect_error(create_irods("https://example.test"), "already exists")
+  },
+  interactive = function() TRUE,
+  .package = "base"
+  )
+})
