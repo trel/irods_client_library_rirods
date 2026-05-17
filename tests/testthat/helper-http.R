@@ -6,6 +6,14 @@ remove_mock_files <- function() {
   invisible(file.path(pt, mockers))
 }
 
+with_http_fixture <- function(name, code, simplify) {
+  if (missing(simplify)) {
+    httptest2::with_mock_dir(name, code)
+  } else {
+    httptest2::with_mock_dir(name, code, simplify = simplify)
+  }
+}
+
 test_iput <- function(lpath) {
   args <- list(
     op = "write",

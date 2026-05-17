@@ -1,4 +1,4 @@
-with_mock_dir("expand-path", {
+with_http_fixture("expand-path", {
   test_that("expand path works", {
     expect_equal(make_irods_base_path(),
                  paste0("/", find_irods_file("irods_zone"), "/home/", .rirods$user))
@@ -30,7 +30,7 @@ with_mock_dir("expand-path", {
 simplify = FALSE
 )
 
-with_mock_dir("object-helpers", {
+with_http_fixture("object-helpers", {
   test_that("irods object helpers work", {
     test_iput(paste0(irods_test_path, "/dfr.csv"))
 

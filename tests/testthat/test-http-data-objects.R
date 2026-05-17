@@ -1,4 +1,4 @@
-with_mock_dir("parallel-write-handle", {
+with_http_fixture("parallel-write-handle", {
   test_that("parallel write can be started and stopped", {
     parallel_write_handle <- parallel_write_init(
       paste0(irods_test_path, "/x"),
@@ -17,7 +17,7 @@ with_mock_dir("parallel-write-handle", {
 simplify = FALSE
 )
 
-with_mock_dir("single-write", {
+with_http_fixture("single-write", {
   test_that("single write request works", {
     x <- list()
     object <- serialize(x, NULL)
@@ -56,7 +56,7 @@ with_mock_dir("single-write", {
 simplify = FALSE
 )
 
-with_mock_dir("chunked-write", {
+with_http_fixture("chunked-write", {
   test_that("chunked write requests can be built", {
     max_number_of_parallel_write_streams <-
       find_irods_file("max_number_of_parallel_write_streams")
@@ -84,7 +84,7 @@ with_mock_dir("chunked-write", {
 simplify = FALSE
 )
 
-with_mock_dir("write-from-memory", {
+with_http_fixture("write-from-memory", {
   test_that("write from memory to iRODS", {
     chunks <- local_to_irods(
       dfr,
@@ -101,7 +101,7 @@ with_mock_dir("write-from-memory", {
 simplify = FALSE
 )
 
-with_mock_dir("write-from-disk", {
+with_http_fixture("write-from-disk", {
   test_that("write from disk to iRODS works", {
     x <- file("dfr.csv", "rb", raw = TRUE)
     on.exit(close(x))
@@ -120,7 +120,7 @@ with_mock_dir("write-from-disk", {
 simplify = FALSE
 )
 
-with_mock_dir("write-read-data-objects", {
+with_http_fixture("write-read-data-objects", {
   test_that("write and read data-objects works", {
     expect_invisible(isaveRDS(dfr, "dfr.rds", overwrite = TRUE))
     if (.rirods$token != "secret") {

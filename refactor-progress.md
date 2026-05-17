@@ -49,6 +49,7 @@ Completed:
 - changed `.Rprofile` so `dev && make` runs only when explicitly requested via `RIRODS_PREPARE_DEV_DEMO=true`
 - verified that the offline-capable suite now runs with only `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`; disabling the whole user profile is no longer required for these test commands
 - corrected the manual fixture-refresh workflow so it removes existing recorded HTTP fixtures before replaying only the `test-http-*` suite
+- added a `with_http_fixture()` helper and switched the `test-http-*` suite to use it instead of calling `with_mock_dir()` directly
 
 Observed during tooling setup:
 
@@ -264,6 +265,13 @@ Recorded/offline coverage remains in the existing feature files and contains:
 - recorded HTTP endpoint behavior for collections, info, errors, and admin calls
 - recorded metadata and standard data-object flows
 
+The recorded suite now goes through a dedicated helper:
+
+- `tests/testthat/helper-http.R::with_http_fixture()`
+
+That keeps fixture usage centralized and gives the harness one seam for a later
+fixture-directory move.
+
 ## Remaining Cleanup Candidates
 
 1. remove the `.Rprofile` side effect that runs `cd dev && make` so test commands do not need environment overrides
@@ -281,6 +289,21 @@ Update:
 2. update CI workflow boundaries now that the file naming split is in place
 3. remove or tame the `.Rprofile` side effect so routine test commands do not need environment overrides
 4. decide whether to continue into fixture relocation or stop at the naming and helper cleanup stage
+
+## Fixture Helper Refactor Performed
+
+Updated recorded/offline tests to call:
+
+- `with_http_fixture()`
+
+instead of calling `httptest2::with_mock_dir()` directly in each file.
+
+Result:
+
+- the offline-capable suite still passes unchanged
+- fixture orchestration now has a single helper seam in `helper-http.R`
+- future fixture relocation can be done in one place instead of editing every
+  `test-http-*` file again
 
 ## Startup Refactor Performed
 

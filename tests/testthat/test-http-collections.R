@@ -1,4 +1,4 @@
-with_mock_dir("add-data-collections-1", {
+with_http_fixture("add-data-collections-1", {
   test_that("creating collections from iRODS works", {
     expect_invisible(imkdir("a"))
 
@@ -16,7 +16,7 @@ with_mock_dir("add-data-collections-1", {
 simplify = FALSE
 )
 
-with_mock_dir("add-data-collections-2", {
+with_http_fixture("add-data-collections-2", {
   test_that("creating collections recursively from iRODS works", {
     expect_invisible(imkdir("x/a", create_parent_collections = TRUE))
 
@@ -34,7 +34,7 @@ with_mock_dir("add-data-collections-2", {
 simplify = FALSE
 )
 
-with_mock_dir("remove-data-collections-1", {
+with_http_fixture("remove-data-collections-1", {
   test_that("removing collections from iRODS works", {
     expect_invisible(irm("a", force = TRUE))
   })
@@ -42,7 +42,7 @@ with_mock_dir("remove-data-collections-1", {
 simplify = FALSE
 )
 
-with_mock_dir("remove-data-collections-2", {
+with_http_fixture("remove-data-collections-2", {
   test_that("removing collections recursive from iRODS works", {
     expect_invisible(irm("x", recursive = TRUE, force = TRUE))
   })
@@ -50,7 +50,7 @@ with_mock_dir("remove-data-collections-2", {
 simplify = FALSE
 )
 
-with_mock_dir("remove-objects", {
+with_http_fixture("remove-objects", {
   test_that("removing objects from iRODS works", {
     test_iput(paste0(irods_test_path, "/dfr.csv"))
     expect_invisible(irm("dfr.csv", force = TRUE))

@@ -1,4 +1,4 @@
-with_mock_dir("print-1", {
+with_http_fixture("print-1", {
   test_that("output is printed 1", {
     expect_message(print(ils()),
                    "This collection does not contain any objects or collections.")
@@ -6,7 +6,7 @@ with_mock_dir("print-1", {
 },
 simplify = FALSE)
 
-with_mock_dir("print-2", {
+with_http_fixture("print-2", {
   test_that("output is printed 2", {
     bar <- data.frame(x = c(1, 8, 9), y = c("x", "y", "z"))
     isaveRDS(bar, "bar.rds", overwrite = T)

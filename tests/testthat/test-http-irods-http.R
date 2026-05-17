@@ -1,4 +1,4 @@
-with_mock_dir("collection-http", {
+with_http_fixture("collection-http", {
   test_that("all operation for collections 200 OK", {
     endpoint = "collections"
     args <- list(
@@ -71,7 +71,7 @@ with_mock_dir("collection-http", {
 simplify = FALSE
 )
 
-with_mock_dir("info-http", {
+with_http_fixture("info-http", {
   test_that("all information operations 200 OK", {
     endpoint <- "info"
     args <- list()
@@ -83,7 +83,7 @@ with_mock_dir("info-http", {
 simplify = FALSE
 )
 
-with_mock_dir("http-erros", {
+with_http_fixture("http-erros", {
   test_that("error handling", {
     endpoint = "data-objects"
     args <- list()
@@ -99,7 +99,7 @@ with_mock_dir("http-erros", {
 simplify = FALSE
 )
 
-with_mock_dir("admin-http", {
+with_http_fixture("admin-http", {
   test_that("admin", {
     endpoint = "users-groups"
     args <- list(

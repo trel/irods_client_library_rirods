@@ -1,4 +1,4 @@
-with_mock_dir("authentication", {
+with_http_fixture("authentication", {
   test_that("authentication errors in absence of configuration", {
     tmp <- tempfile()
     file.copy(path_to_irods_conf(), tmp)

@@ -1,4 +1,4 @@
-with_mock_dir("metadata-1", {
+with_http_fixture("metadata-1", {
   test_that("metadata works for collections" , {
     expect_invisible(
       imeta(
@@ -29,7 +29,7 @@ with_mock_dir("metadata-1", {
 simplify = FALSE
 )
 
-with_mock_dir("metadata-2", {
+with_http_fixture("metadata-2", {
   test_that("metadata works for data objects" , {
     test_iput(paste0(irods_test_path, "/dfr.csv"))
 
@@ -70,7 +70,7 @@ with_mock_dir("metadata-2", {
 simplify = FALSE
 )
 
-with_mock_dir("metadata-3", {
+with_http_fixture("metadata-3", {
   test_that("metadata works 3" , {
     some_object <- 1:10
     isaveRDS(some_object, "some_object.rds")
@@ -95,7 +95,7 @@ with_mock_dir("metadata-3", {
 simplify = FALSE
 )
 
-with_mock_dir("metadata-errors", {
+with_http_fixture("metadata-errors", {
   test_that("metadata errors" , {
     error_type1  <- c("x")
     error_msg1 <- "The supplied `operations` should be of type `list` or `data.frame`."
@@ -122,7 +122,7 @@ with_mock_dir("metadata-errors", {
 simplify = FALSE
 )
 
-with_mock_dir("metadata-remove", {
+with_http_fixture("metadata-remove", {
   test_that("metadata removing works" , {
     imeta(
       "dfr.csv",

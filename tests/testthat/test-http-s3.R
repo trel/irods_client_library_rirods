@@ -1,4 +1,4 @@
-with_mock_dir("coerce-irods_df", {
+with_http_fixture("coerce-irods_df", {
   test_that("coerce irods_df to data.frame", {
     test_iput(paste0(irods_test_path, "/dfr.csv"))
     test_imeta(

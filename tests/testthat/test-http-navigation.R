@@ -1,4 +1,4 @@
-with_mock_dir("navigation", {
+with_http_fixture("navigation", {
   test_that("navigation works", {
     expect_invisible(icd("."))
     expect_equal((icd(".")), ipwd())
@@ -37,7 +37,7 @@ with_mock_dir("navigation", {
 simplify = FALSE
 )
 
-with_mock_dir("list", {
+with_http_fixture("list", {
   test_that("ils works", {
     icd("..")
     expect_gt(nrow(as.data.frame(ils())), 0L)
@@ -55,7 +55,7 @@ with_mock_dir("list", {
 simplify = FALSE
 )
 
-with_mock_dir("list-limit-number-rows", {
+with_http_fixture("list-limit-number-rows", {
   test_that("number of rows returned can be limited", {
     icd("..")
     out <- ils(limit = 1L)
@@ -66,7 +66,7 @@ with_mock_dir("list-limit-number-rows", {
 simplify = FALSE
 )
 
-with_mock_dir("list-stats", {
+with_http_fixture("list-stats", {
   test_that("stats of logical path can be extracted", {
     expect_s3_class(get_stat(irods_test_path), "data.frame")
     out <- make_ils_stat(irods_test_path)
@@ -77,7 +77,7 @@ with_mock_dir("list-stats", {
 simplify = FALSE
 )
 
-with_mock_dir("list-metadata-0", {
+with_http_fixture("list-metadata-0", {
   test_that("no metadata message is shown", {
     expect_message(make_ils_metadata(irods_test_path), "No metadata")
   })
@@ -85,7 +85,7 @@ with_mock_dir("list-metadata-0", {
 simplify = FALSE
 )
 
-with_mock_dir("list-metadata-1", {
+with_http_fixture("list-metadata-1", {
   test_that("metadata objects can be extracted", {
     test_imkdir(paste0(irods_test_path, "/new"))
     test_imkdir(paste0(irods_test_path, "/new2"))
@@ -116,7 +116,7 @@ with_mock_dir("list-metadata-1", {
 simplify = FALSE
 )
 
-with_mock_dir("list-metadata-2", {
+with_http_fixture("list-metadata-2", {
   test_that("metadata collections can be extracted", {
     test_imeta(
       paste0(irods_test_path, "/new"),
@@ -144,7 +144,7 @@ with_mock_dir("list-metadata-2", {
 simplify = FALSE
 )
 
-with_mock_dir("list-metadata-3", {
+with_http_fixture("list-metadata-3", {
   test_that("metadata collections and objects can be extracted", {
     ref <- structure(
       list(
