@@ -10,7 +10,7 @@ ils(
   permissions = FALSE,
   metadata = FALSE,
   offset = numeric(1),
-  limit = find_irods_file("max_number_of_rows_per_catalog_query"),
+  limit = Inf,
   recurse = FALSE,
   ticket = NULL,
   message = TRUE,
@@ -31,7 +31,7 @@ Defaults to \code{FALSE}.}
 
 \item{offset}{Number of records to skip for pagination. Deprecated.}
 
-\item{limit}{Number of records to show per page.}
+\item{limit}{Maximum number of records to return. Defaults to all records.}
 
 \item{recurse}{Recursively list. Defaults to \code{FALSE}.}
 

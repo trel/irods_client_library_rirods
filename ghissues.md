@@ -15,12 +15,13 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 
 ### 1. `#60` `ils()` function doesn't return correct list
 
+- Status: Complete on current branch.
 - Priority: Highest
 - Type: Bug
 - Impact: High
 - Effort: Medium
 - Why first: `ils()` is a core command. Returning incomplete results breaks navigation, discovery, and trust in the client.
-- Notes: This appears related to output truncation / pagination behavior and may overlap with existing work in PR `#52`.
+- Notes: Fixed by removing the unintended default client-side truncation in `ils()` and adding a regression test that verifies all entries are returned unless `limit` is explicitly supplied.
 
 ### 2. `#51` Existence of user home is assumed
 
@@ -176,11 +177,11 @@ Reason:
 
 1. Review PR `#52` before starting new work.
 2. Treat `#62` as complete on the current branch and avoid duplicating that fix.
-3. Determine whether `#51` and `#60` can be resolved by completing or adapting PR `#52`.
-4. Inspect the `ils()` implementation for shared root causes behind `#60` and `#63`.
+3. Treat `#60` as complete on the current branch and avoid duplicating that fix.
+4. Determine whether `#51` can be resolved by completing or adapting PR `#52`, and inspect remaining `ils()` failure modes for `#63`.
 5. After the remaining `ils()` cluster is stable, move to test/auth issues `#55` and `#56`.
 
 ## Summary
 
-If choosing only one place to start next, continue with the remaining `ils()` / navigation bug cluster: `#60`, `#51`, and `#63`.
+If choosing only one place to start next, continue with the remaining `ils()` / navigation bug cluster: `#51` and `#63`.
 That is the best combination of high user impact, bug priority, and likely shared implementation effort.

@@ -133,6 +133,36 @@ test_that("resolve_icd_path and ils helpers cover remaining offline branches", {
   )
 })
 
+test_that("ils returns all entries by default and only limits when requested", {
+  req <- httr2::request("https://example.test/list")
+  entries <- paste0("/tempZone/home/alice/item_", seq_len(17))
+
+  testthat::with_mocked_bindings({
+    testthat::with_mocked_bindings({
+      out_default <- ils()
+      out_limited <- ils(limit = 15L)
+    },
+    req_perform = function(req, ...) structure(list(), class = "httr2_response"),
+    resp_body_json = function(resp, check_type = FALSE, simplifyVector = TRUE) list(entries = entries),
+    .package = "httr2"
+    )
+  },
+  irods_http_call = function(...) req,
+  find_irods_file = function(what) {
+    switch(
+      what,
+      max_number_of_rows_per_catalog_query = 15L,
+      NULL
+    )
+  },
+  new_irods_df = function(x) x,
+  .package = "rirods"
+  )
+
+  expect_equal(out_default$logical_path, entries)
+  expect_equal(out_limited$logical_path, entries[seq_len(15)])
+})
+
 test_that("make_ils_metadata aligns mixed collection and object metadata rows", {
   collection_meta <- data.frame(
     COLL_NAME = "/tempZone/home/alice/project",
