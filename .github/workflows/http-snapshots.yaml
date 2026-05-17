@@ -68,4 +68,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: refreshed-http-fixtures
-          path: ./rirods/tests/testthat
+          path: ./rirods/tests/fixtures/httptest2

@@ -1,16 +1,25 @@
+fixture_root <- function() {
+  root <- testthat::test_path("..", "fixtures", "httptest2")
+  dir.create(root, recursive = TRUE, showWarnings = FALSE)
+  root
+}
+
+fixture_path <- function(name) {
+  file.path(fixture_root(), name)
+}
+
 remove_mock_files <- function() {
-  pt <- file.path(getwd(), testthat::test_path())
-  fls <- list.files(pt, include.dirs = TRUE)
-  mockers <- fls[!grepl(pattern = "((.*)\\..*$)|(^_)", x = fls)]
-  unlink(file.path(pt, mockers), recursive = TRUE)
-  invisible(file.path(pt, mockers))
+  dirs <- list.dirs(fixture_root(), recursive = FALSE, full.names = TRUE)
+  unlink(dirs, recursive = TRUE)
+  invisible(dirs)
 }
 
 with_http_fixture <- function(name, code, simplify) {
+  path <- fixture_path(name)
   if (missing(simplify)) {
-    httptest2::with_mock_dir(name, code)
+    httptest2::with_mock_dir(path, code)
   } else {
-    httptest2::with_mock_dir(name, code, simplify = simplify)
+    httptest2::with_mock_dir(path, code, simplify = simplify)
   }
 }
 

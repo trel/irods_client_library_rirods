@@ -51,6 +51,7 @@ Completed:
 - corrected the manual fixture-refresh workflow so it removes existing recorded HTTP fixtures before replaying only the `test-http-*` suite
 - added a `with_http_fixture()` helper and switched the `test-http-*` suite to use it instead of calling `with_mock_dir()` directly
 - extracted the remaining `setup.R` bootstrap logic into `tests/testthat/helper-env.R` and reduced `setup.R` to sourcing helpers plus `list2env(bootstrap_test_state(), environment())`
+- moved recorded HTTP fixture directories from `tests/testthat/` to `tests/fixtures/httptest2/` and repointed the helper plus refresh workflow to the new fixture tree
 
 Observed during tooling setup:
 
@@ -270,14 +271,14 @@ The recorded suite now goes through a dedicated helper:
 
 - `tests/testthat/helper-http.R::with_http_fixture()`
 
-That keeps fixture usage centralized and gives the harness one seam for a later
-fixture-directory move.
+That now points at a dedicated fixture tree under:
+
+- `tests/fixtures/httptest2/`
 
 ## Remaining Cleanup Candidates
 
 1. remove the `.Rprofile` side effect that runs `cd dev && make` so test commands do not need environment overrides
-2. consider moving fixtures out of `tests/testthat/` into a dedicated fixture tree if the harness rewrite continues
-3. decide whether coverage should continue to include only offline tests or gain a separate live-aware coverage path
+2. decide whether coverage should continue to include only offline tests or gain a separate live-aware coverage path
 
 Update:
 
@@ -332,6 +333,23 @@ Validation:
 - the offline-capable suite still passes unchanged
 - `setup.R` is much smaller and the bootstrap responsibilities are now named
   explicitly in one helper file
+
+## Fixture Relocation Performed
+
+Moved recorded HTTP fixtures to:
+
+- `tests/fixtures/httptest2/`
+
+Follow-on changes:
+
+- `with_http_fixture()` now resolves fixture paths through the dedicated tree
+- `remove_mock_files()` now clears only the dedicated fixture tree
+- the manual refresh workflow now uploads `tests/fixtures/httptest2/` as its
+  artifact
+
+Validation:
+
+- the offline-capable suite still passes against the relocated fixtures
 
 ## Startup Refactor Performed
 
