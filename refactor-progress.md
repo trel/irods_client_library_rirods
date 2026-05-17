@@ -50,6 +50,7 @@ Completed:
 - verified that the offline-capable suite now runs with only `RENV_CONFIG_AUTOLOADER_ENABLED=FALSE`; disabling the whole user profile is no longer required for these test commands
 - corrected the manual fixture-refresh workflow so it removes existing recorded HTTP fixtures before replaying only the `test-http-*` suite
 - added a `with_http_fixture()` helper and switched the `test-http-*` suite to use it instead of calling `with_mock_dir()` directly
+- extracted the remaining `setup.R` bootstrap logic into `tests/testthat/helper-env.R` and reduced `setup.R` to sourcing helpers plus `list2env(bootstrap_test_state(), environment())`
 
 Observed during tooling setup:
 
@@ -304,6 +305,33 @@ Result:
 - fixture orchestration now has a single helper seam in `helper-http.R`
 - future fixture relocation can be done in one place instead of editing every
   `test-http-*` file again
+
+## Setup Refactor Performed
+
+Added environment/bootstrap helper:
+
+- `tests/testthat/helper-env.R`
+
+This helper now owns:
+
+- development credential selection
+- temporary config-dir setup
+- temporary local test file creation
+- online session bootstrap
+- offline session bootstrap
+- shared path derivation for the test collections
+
+`tests/testthat/setup.R` now only:
+
+- loads test helper files
+- calls `bootstrap_test_state()`
+- injects the returned state with `list2env()`
+
+Validation:
+
+- the offline-capable suite still passes unchanged
+- `setup.R` is much smaller and the bootstrap responsibilities are now named
+  explicitly in one helper file
 
 ## Startup Refactor Performed
 
