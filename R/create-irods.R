@@ -10,13 +10,22 @@
 #'
 #' @param host URL of host.
 #' @param zone_path Deprecated
+#' @param client_name Optional client name/identifier to send as the HTTP API
+#'   `spOption`, useful for attributing operations in audit logs.
 #' @param overwrite Overwrite existing iRODS configuration file. Defaults to
 #'    `FALSE`.
 #'
 #' @return Invisibly, the path to the iRODS configuration file.
 #' @export
 #'
-create_irods <- function(host, zone_path = character(1), overwrite = FALSE) {
+irods_interactive <- function() interactive()
+
+create_irods <- function(
+  host,
+  zone_path = character(1),
+  client_name = NULL,
+  overwrite = FALSE
+) {
 
   if (!missing("zone_path"))
     warning("Argument `zone_path` is deprecated")
@@ -24,7 +33,7 @@ create_irods <- function(host, zone_path = character(1), overwrite = FALSE) {
   path <- path_to_irods_conf()
 
   # check for existence of iRODS configuration file
-  if (interactive() && file.exists(path) && isFALSE(overwrite))
+  if (irods_interactive() && file.exists(path) && isFALSE(overwrite))
     stop(
       "iRODS configuration file already exists. If you want to overwrite this ",
       "file then set `overwrite` to TRUE.",
@@ -33,8 +42,13 @@ create_irods <- function(host, zone_path = character(1), overwrite = FALSE) {
 
   # create file
   file.create(path)
+  config <- list(host = host)
+  if (!is.null(client_name) && nzchar(client_name)) {
+    config$spOption <- client_name
+  }
+
   write(
-    jsonlite::toJSON(list(host = host), auto_unbox = TRUE, pretty = TRUE),
+    jsonlite::toJSON(config, auto_unbox = TRUE, pretty = TRUE),
     file = path
   )
 

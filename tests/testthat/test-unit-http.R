@@ -25,6 +25,34 @@ test_that("irods_http_call validates connection and builds verbose requests", {
   )
 })
 
+test_that("irods_http_call forwards configured client identifier as spOption", {
+  local_restore_rirods_fields("token")
+  assign("token", "secret", envir = .rirods)
+
+  testthat::with_mocked_bindings({
+    req <- irods_http_call(
+      endpoint = "collections",
+      verb = "GET",
+      args = list(op = "list", lpath = "/tempZone/home/alice"),
+      verbose = FALSE,
+      error = FALSE
+    )
+
+    expect_match(req$url, "spOption=rirods-audit")
+  },
+  is_connected_irods = function(...) TRUE,
+  find_irods_file = function(what) {
+    switch(
+      what,
+      host = "https://example.test",
+      spOption = "rirods-audit",
+      NULL
+    )
+  },
+  .package = "rirods"
+  )
+})
+
 test_that("irods_errors formats server-side error messages", {
   testthat::with_mocked_bindings({
     msg <- irods_errors(list())

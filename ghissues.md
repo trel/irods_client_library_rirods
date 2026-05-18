@@ -95,11 +95,13 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 
 ### 9. `#58` Add client name/identifier - spOption
 
+- Status: Complete on current branch.
 - Priority: Medium
 - Type: Enhancement
 - Impact: Medium
 - Effort: Low-Medium
 - Why later: Useful operationally for audit/logging, but not blocking core package workflows.
+- Notes: Fixed by allowing `create_irods(client_name = ...)` to persist a client identifier as `spOption` in the local config and by automatically forwarding that value on HTTP API requests. Added regression tests covering both config persistence and request query construction.
 
 ### 10. `#61` Can `ils()` distinguish between collections and data objects in its output?
 
@@ -162,7 +164,6 @@ Reason:
 Target issues:
 
 - `#54`
-- `#58`
 - `#61`
 
 Reason:
@@ -189,6 +190,7 @@ Reason:
 4. Treat `#51` as complete on the current branch and avoid duplicating that fix.
 5. Treat `#55` and `#56` as complete on the current branch and move to the next remaining issue.
 6. Treat `#59` as complete on the current branch and move to the enhancement backlog.
+7. Treat `#58` as complete on the current branch and keep `#54` as the next recommended issue.
 
 ## Summary
 

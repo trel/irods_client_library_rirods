@@ -30,6 +30,11 @@ irods_http_call <- function(
     httr2::req_auth_bearer_token(token) |>
     httr2::req_method(verb)
 
+  sp_option <- find_irods_file("spOption")
+  if (!is.null(sp_option) && nzchar(sp_option)) {
+    args$spOption <- sp_option
+  }
+
   # add further args to request
   if (verb == "GET") {
     req <- do.call(function(...) httr2::req_url_query(req, ...), args)

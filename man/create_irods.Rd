@@ -4,12 +4,20 @@
 \alias{create_irods}
 \title{Generate IRODS Configuration File}
 \usage{
-create_irods(host, zone_path = character(1), overwrite = FALSE)
+create_irods(
+  host,
+  zone_path = character(1),
+  client_name = NULL,
+  overwrite = FALSE
+)
 }
 \arguments{
 \item{host}{URL of host.}
 
 \item{zone_path}{Deprecated}
+
+\item{client_name}{Optional client name/identifier to send as the HTTP API
+\code{spOption}, useful for attributing operations in audit logs.}
 
 \item{overwrite}{Overwrite existing iRODS configuration file. Defaults to
 \code{FALSE}.}
