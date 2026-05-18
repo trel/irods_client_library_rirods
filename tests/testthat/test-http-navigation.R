@@ -7,15 +7,15 @@ with_http_fixture("navigation", {
     expect_invisible(icd(".."))
     expect_equal(ipwd(), def_path)
 
-    expect_invisible(icd("testthat"))
+    expect_invisible(icd(test_collection_name))
     expect_equal(ipwd(), irods_test_path)
 
     icd("..")
 
-    expect_invisible(icd("./testthat"))
+    expect_invisible(icd(paste0("./", test_collection_name)))
     expect_equal(ipwd(), irods_test_path)
 
-    expect_invisible(icd("../projectx"))
+    expect_invisible(icd(paste0("../", project_collection_name)))
     expect_equal(ipwd(), irods_test_path_x)
 
     test_iput(paste0(irods_test_path, "/dfr.csv"))
@@ -23,7 +23,7 @@ with_http_fixture("navigation", {
     expect_error(icd(paste0(irods_test_path, "/dfr.csv")))
     expect_error(icd(paste0(def_path, "/projecty")))
 
-    expect_invisible(icd("../testthat"))
+    expect_invisible(icd(paste0("../", test_collection_name)))
     expect_equal(ipwd(), irods_test_path)
     expect_gt(nrow(as.data.frame(ils())), 0L)
     expect_invisible(icd("./"))
@@ -43,11 +43,11 @@ with_http_fixture("list", {
     expect_gt(nrow(as.data.frame(ils())), 0L)
     expect_equal(ncol(as.data.frame(ils())), 1L)
     expect_equal(ncol(as.data.frame(ils(stat = TRUE))), 10L)
-    expect_message(print(ils("projectx")),
+    expect_message(print(ils(project_collection_name)),
                    "This collection does not contain any objects or collections.")
-    expect_message(print(ils("/tempZone/home/rods/projectx")),
+    expect_message(print(ils(irods_test_path_x)),
                    "This collection does not contain any objects or collections.")
-    expect_error(ils("tempZone/home/rods/projectx"))
+    expect_error(ils(sub("^/", "", irods_test_path_x)))
     expect_error(ils("/projectx"))
     icd(irods_test_path)
   })

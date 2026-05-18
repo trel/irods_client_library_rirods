@@ -57,10 +57,35 @@ local_test_file <- function() {
 }
 
 test_paths <- function(def_path) {
+  test_collection_names <- list(
+    test_collection_name = "testthat",
+    project_collection_name = "projectx"
+  )
+
+  build_test_paths(def_path, test_collection_names)
+}
+
+build_test_paths <- function(def_path, collection_names) {
   list(
     def_path = def_path,
-    irods_test_path = paste0(def_path, "/testthat"),
-    irods_test_path_x = paste0(def_path, "/projectx")
+    test_collection_name = collection_names$test_collection_name,
+    project_collection_name = collection_names$project_collection_name,
+    irods_test_path = paste0(def_path, "/", collection_names$test_collection_name),
+    irods_test_path_x = paste0(def_path, "/", collection_names$project_collection_name)
+  )
+}
+
+unique_test_collection_names <- function() {
+  run_id <- paste(
+    format(Sys.time(), "%Y%m%d%H%M%S"),
+    Sys.getpid(),
+    sample.int(99999L, 1L),
+    sep = "-"
+  )
+
+  list(
+    test_collection_name = paste0("testthat-", run_id),
+    project_collection_name = paste0("projectx-", run_id)
   )
 }
 
@@ -70,14 +95,14 @@ online_test_state <- function(user, pass, host) {
 
   iauth(user, pass, "rodsuser")
 
-  paths <- test_paths(rirods:::make_irods_base_path())
+  paths <- build_test_paths(rirods:::make_irods_base_path(), unique_test_collection_names())
   if (!lpath_exists(paths$irods_test_path)) test_imkdir(paths$irods_test_path)
   if (!lpath_exists(paths$irods_test_path_x)) test_imkdir(paths$irods_test_path_x)
 
   withr::defer(test_irm(paths$irods_test_path, "collections"), teardown_env())
   withr::defer(test_irm(paths$irods_test_path_x, "collections"), teardown_env())
 
-  icd("testthat")
+  icd(paths$test_collection_name)
 
   paths
 }
@@ -98,7 +123,10 @@ offline_test_state <- function(user, host) {
   .rirods$user <- user
   .rirods$user_role <- "rodsuser"
 
-  paths <- test_paths(make_irods_base_path())
+  paths <- build_test_paths(make_irods_base_path(), list(
+    test_collection_name = "testthat",
+    project_collection_name = "projectx"
+  ))
   .rirods$current_dir <- paths$irods_test_path
   assign("token", "secret", envir = .rirods)
 

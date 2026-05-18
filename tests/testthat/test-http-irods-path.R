@@ -8,7 +8,7 @@ with_http_fixture("expand-path", {
 
     expect_equal(get_absolute_lpath(user), def_path)
     expect_equal(
-      get_absolute_lpath(paste0(user, "/testthat")),
+      get_absolute_lpath(paste0(user, "/", test_collection_name)),
       irods_test_path
     )
     expect_equal(get_absolute_lpath(def_path), def_path)

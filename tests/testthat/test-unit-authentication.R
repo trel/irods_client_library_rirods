@@ -68,16 +68,44 @@ test_that("is_connected_irods is false without a token", {
   expect_false(is_connected_irods())
 })
 
-test_that("online_test_state does not request a second token after iauth", {
+test_that("online_test_state uses unique test collections without a second token", {
   local_restore_rirods_fields(c("token", "user", "user_role", "current_dir"))
 
   token_requests <- 0L
+  seen <- new.env(parent = emptyenv())
+  seen$created <- character()
+  seen$removed <- character()
+  seen$changed_dir <- NULL
+  collection_names <- list(
+    test_collection_name = "testthat-run-123",
+    project_collection_name = "projectx-run-123"
+  )
+  expected_paths <- build_test_paths("/tempZone/home/alice", collection_names)
+  helper_env <- environment(online_test_state)
+  old_unique_names <- get("unique_test_collection_names", envir = helper_env)
+  old_test_imkdir <- get("test_imkdir", envir = helper_env)
+  old_test_irm <- get("test_irm", envir = helper_env)
+
+  assign("unique_test_collection_names", function() collection_names, envir = helper_env)
+  assign("test_imkdir", function(lpath) {
+    seen$created <- c(seen$created, lpath)
+    invisible(NULL)
+  }, envir = helper_env)
+  assign("test_irm", function(lpath, endpoint = "data-objects") {
+    seen$removed <- c(seen$removed, lpath)
+    invisible(NULL)
+  }, envir = helper_env)
+  on.exit({
+    assign("unique_test_collection_names", old_unique_names, envir = helper_env)
+    assign("test_imkdir", old_test_imkdir, envir = helper_env)
+    assign("test_irm", old_test_irm, envir = helper_env)
+  }, add = TRUE)
 
   testthat::with_mocked_bindings({
     testthat::with_mocked_bindings({
       expect_equal(
         online_test_state("alice", "secret", "https://example.test"),
-        test_paths("/tempZone/home/alice")
+        expected_paths
       )
     },
     defer = function(expr, envir) invisible(NULL),
@@ -94,8 +122,11 @@ test_that("online_test_state does not request a second token after iauth", {
     invisible(NULL)
   },
   make_irods_base_path = function(...) "/tempZone/home/alice",
-  lpath_exists = function(...) TRUE,
-  icd = function(...) invisible(NULL),
+  lpath_exists = function(...) FALSE,
+  icd = function(dir) {
+    seen$changed_dir <- dir
+    invisible(NULL)
+  },
   get_token = function(...) {
     token_requests <<- token_requests + 1L
     "extra-token"
@@ -104,4 +135,6 @@ test_that("online_test_state does not request a second token after iauth", {
 
   expect_identical(.rirods$token, "session-token")
   expect_identical(token_requests, 0L)
+  expect_equal(seen$created, c(expected_paths$irods_test_path, expected_paths$irods_test_path_x))
+  expect_identical(seen$changed_dir, collection_names$test_collection_name)
 })

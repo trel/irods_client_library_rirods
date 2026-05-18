@@ -40,9 +40,9 @@ test_that("irods demo works on linux", {
   Sys.sleep(3)
   file.copy(tmp, path_to_irods_conf())
   iauth(user, pass, "rodsuser")
-  if (!lpath_exists(irods_test_path)) imkdir("testthat")
-  if (!lpath_exists(irods_test_path_x)) imkdir("projectx")
-  icd("testthat")
+  if (!lpath_exists(irods_test_path)) test_imkdir(irods_test_path)
+  if (!lpath_exists(irods_test_path_x)) test_imkdir(irods_test_path_x)
+  icd(test_collection_name)
 })
 
 test_that("script to test if iRODS containers are running works", {
