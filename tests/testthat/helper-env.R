@@ -147,7 +147,7 @@ bootstrap_test_state <- function() {
 
   if (inherits(state, "try-error")) {
     state <- offline_test_state(creds$user, creds$host)
-  } else {
+  } else if (!identical(Sys.getenv("RIRODS_PRESERVE_FIXTURES"), "true")) {
     remove_mock_files()
   }
 
