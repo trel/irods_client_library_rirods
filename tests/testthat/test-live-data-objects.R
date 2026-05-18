@@ -47,3 +47,26 @@ test_that("chunked write request works", {
   expect_equal(dfr, ireadRDS("dfr.rds"))
   test_irm(paste0(irods_test_path, "/dfr.rds"))
 })
+
+test_that("checksum requests and local overwrite protection work", {
+  skip_if_no_live_irods()
+  skip_if(!is_irods_demo_running(), "Live iRODS demo is not running.")
+  skip_if(.rirods$token == "secret", "IRODS server unavailable")
+
+  local_csv <- tempfile(fileext = ".csv")
+  local_copy <- tempfile(fileext = ".csv")
+  writeLines("a,b\n1,2", local_csv)
+  writeLines("existing", local_copy)
+
+  iput(local_csv, "checksum.csv", overwrite = TRUE)
+
+  checksum <- ichksum("checksum.csv", force = TRUE)
+  expect_type(checksum, "character")
+  expect_gt(nchar(checksum), 0L)
+
+  expect_error(iget("checksum.csv", local_copy, overwrite = FALSE), "exists")
+
+  unlink(local_csv)
+  unlink(local_copy)
+  test_irm(paste0(irods_test_path, "/checksum.csv"))
+})
