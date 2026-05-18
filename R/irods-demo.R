@@ -301,12 +301,7 @@ local_create_irods <- function(
 
   # default host
   if (is.null(host)) {
-    if (Sys.getenv("DEV_KEY_IROD") != "") {
-      host <-
-        httr2::secret_decrypt(Sys.getenv("DEV_HOST_IRODS"), "DEV_KEY_IRODS")
-    } else {
-      host <- .irods_host
-    }
+    host <- default_irods_host()
   }
 
   # to return to

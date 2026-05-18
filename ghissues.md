@@ -55,11 +55,13 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 
 ### 5. `#55` Hardcoded API URL
 
+- Status: Complete on current branch.
 - Priority: High
 - Type: Bug
 - Impact: Medium-High
 - Effort: Low-Medium
 - Why next: Test portability and correctness are undermined by hardcoded endpoints. This likely contributes to broader test and environment instability.
+- Notes: Fixed by centralizing the default API host lookup, honoring `RIRODS_HOST` and encrypted `DEV_HOST_IRODS` overrides before falling back to the demo URL, and reusing that helper from local test/demo setup.
 
 ### 6. `#56` Testing expires the current authentication
 
@@ -182,9 +184,9 @@ Reason:
 2. Treat `#62` as complete on the current branch and avoid duplicating that fix.
 3. Treat `#60` as complete on the current branch and avoid duplicating that fix.
 4. Treat `#51` as complete on the current branch and avoid duplicating that fix.
-5. After the `ils()` cluster is stable, move to test/auth issues `#55` and `#56`.
+5. Treat `#55` as complete on the current branch and move to the remaining test/auth issue `#56`.
 
 ## Summary
 
-If choosing only one place to start next, move to the test/auth issues: `#55` and `#56`.
-The highest-priority `ils()` / navigation bug cluster is complete on the current branch.
+If choosing only one place to start next, move to the remaining test/auth issue: `#56`.
+The highest-priority `ils()` / navigation bug cluster and the hardcoded host issue are complete on the current branch.
