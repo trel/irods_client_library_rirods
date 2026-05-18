@@ -25,12 +25,13 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 
 ### 2. `#51` Existence of user home is assumed
 
+- Status: Complete on current branch.
 - Priority: Highest
 - Type: Bug
 - Impact: High
 - Effort: Medium
 - Why next: This blocks valid deployments that do not use per-user home collections. It can make the client unusable in production environments.
-- Notes: Also appears to overlap with PR `#52`.
+- Notes: Fixed by honoring an optional `landing_collection` value from the config file for the initial working collection and by teaching `lpath_exists()` to fall back outside the assumed home path without breaking existing fixture-backed behavior.
 
 ### 3. `#62` `ils(metadata=TRUE)` results in errors
 
@@ -178,10 +179,10 @@ Reason:
 1. Review PR `#52` before starting new work.
 2. Treat `#62` as complete on the current branch and avoid duplicating that fix.
 3. Treat `#60` as complete on the current branch and avoid duplicating that fix.
-4. Determine whether `#51` can be resolved by completing or adapting PR `#52`, and inspect remaining `ils()` failure modes for `#63`.
+4. Treat `#51` as complete on the current branch and avoid duplicating that fix. Inspect remaining `ils()` failure modes for `#63`.
 5. After the remaining `ils()` cluster is stable, move to test/auth issues `#55` and `#56`.
 
 ## Summary
 
-If choosing only one place to start next, continue with the remaining `ils()` / navigation bug cluster: `#51` and `#63`.
+If choosing only one place to start next, continue with the remaining `ils()` / navigation bug cluster: `#63`.
 That is the best combination of high user impact, bug priority, and likely shared implementation effort.

@@ -16,6 +16,16 @@ make_irods_base_path <- function() {
   }
 }
 
+initial_irods_dir <- function() {
+  landing_collection <- find_irods_file("landing_collection")
+
+  if (!is.null(landing_collection)) {
+    return(landing_collection)
+  }
+
+  make_irods_base_path()
+}
+
 get_absolute_lpath <- function(lpath, write = FALSE, safely = TRUE) {
 
   if (!grepl("^/" , lpath)) {
@@ -82,15 +92,45 @@ lpath_exists <- function(lpath, write = FALSE) {
   # check connection
   if (!is_connected_irods()) stop("Not connected to iRODS.", call. = FALSE)
 
-  # reference paths
-  all_lpaths <- ils(make_irods_base_path(), recurse = 1) |>
-    as.data.frame() |>
-    rbind(make_irods_base_path())
-
   if (isFALSE(write)) # in case of TRUE `strsplit` ensures absolute path
     lpath <- get_absolute_lpath(lpath, safely = FALSE)
 
-  lpath %in% all_lpaths[[1]]
+  base_path <- try(make_irods_base_path(), silent = TRUE)
+  current_dir <- ipwd()
+  use_base_path <- !inherits(base_path, "try-error") && (
+    startsWith(current_dir, base_path) ||
+      startsWith(base_path, current_dir) ||
+      startsWith(lpath, base_path)
+  )
+
+  search_root <- if (use_base_path) {
+    base_path
+  } else {
+    current_dir
+  }
+
+  all_lpaths <- try(
+    ils(search_root, recurse = 1) |>
+      as.data.frame() |>
+      rbind(search_root),
+    silent = TRUE
+  )
+
+  if (!inherits(all_lpaths, "try-error")) {
+    return(lpath %in% all_lpaths[[1]])
+  }
+
+  stat_collection <- try(get_stat_collections(lpath), silent = TRUE)
+  if (!inherits(stat_collection, "try-error") && stat_collection$status_code != -170000L) {
+    return(TRUE)
+  }
+
+  stat_data_object <- try(get_stat_data_objects(lpath), silent = TRUE)
+  if (!inherits(stat_data_object, "try-error") && stat_data_object$status_code != -171000L) {
+    return(TRUE)
+  }
+
+  FALSE
 }
 
 

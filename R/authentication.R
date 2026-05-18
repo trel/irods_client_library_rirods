@@ -43,17 +43,19 @@ iauth <- function(user, password = NULL, role = "rodsuser") {
   irods_conf_file <- path_to_irods_conf()
   server_info <- jsonlite::fromJSON(irods_conf_file)
 
-  if (length(server_info) == 1) {
+  if (is.null(server_info$irods_zone)) {
     export <-
-      jsonlite::toJSON(append(server_info , get_server_info(FALSE)),
-                       auto_unbox = TRUE,
-                       pretty = TRUE)
+      jsonlite::toJSON(
+        utils::modifyList(as.list(server_info), get_server_info(FALSE)),
+        auto_unbox = TRUE,
+        pretty = TRUE
+      )
     write(export, file = irods_conf_file)
   }
 
   # starting dir as admin or user
   .rirods$user_role <- role
-  .rirods$current_dir <- make_irods_base_path()
+  .rirods$current_dir <- initial_irods_dir()
 
   invisible(NULL)
 }

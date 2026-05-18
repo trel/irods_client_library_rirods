@@ -43,6 +43,62 @@ test_that("path helpers stop on overwrite and missing connections", {
   )
 })
 
+test_that("lpath_exists does not depend on a user home collection", {
+  testthat::with_mocked_bindings({
+    expect_true(lpath_exists("/tempZone/projects/shared"))
+  },
+  is_connected_irods = function(...) TRUE,
+  make_irods_base_path = function(...) stop("home collection missing", call. = FALSE),
+  get_stat_collections = function(lpath, ...) {
+    if (identical(lpath, "/tempZone/projects/shared")) {
+      data.frame(status_code = 0L, type = "collection")
+    } else {
+      data.frame(status_code = -170000L)
+    }
+  },
+  get_stat_data_objects = function(...) data.frame(status_code = -171000L),
+  .package = "rirods"
+  )
+})
+
+test_that("lpath_exists falls back to direct object stat when listing fails", {
+  local_restore_rirods_fields("current_dir")
+  .rirods$current_dir <- "/tempZone/projects/shared"
+
+  testthat::with_mocked_bindings({
+    expect_true(lpath_exists("/tempZone/projects/shared/data.csv"))
+  },
+  is_connected_irods = function(...) TRUE,
+  make_irods_base_path = function(...) "/tempZone/home/alice",
+  get_stat_collections = function(...) data.frame(status_code = -170000L),
+  get_stat_data_objects = function(lpath, ...) {
+    if (identical(lpath, "/tempZone/projects/shared/data.csv")) {
+      data.frame(status_code = 0L, type = "data_object")
+    } else {
+      data.frame(status_code = -171000L)
+    }
+  },
+  ils = function(...) stop("listing unavailable", call. = FALSE),
+  .package = "rirods"
+  )
+})
+
+test_that("lpath_exists returns false when listing and stat fallbacks miss", {
+  local_restore_rirods_fields("current_dir")
+  .rirods$current_dir <- "/tempZone/projects/shared"
+
+  testthat::with_mocked_bindings({
+    expect_false(lpath_exists("/tempZone/projects/shared/missing.csv"))
+  },
+  is_connected_irods = function(...) TRUE,
+  make_irods_base_path = function(...) "/tempZone/home/alice",
+  get_stat_collections = function(...) data.frame(status_code = -170000L),
+  get_stat_data_objects = function(...) data.frame(status_code = -171000L),
+  ils = function(...) stop("listing unavailable", call. = FALSE),
+  .package = "rirods"
+  )
+})
+
 test_that("icd resolves paths locally before collection checks", {
   local_restore_rirods_fields("current_dir")
   .rirods$current_dir <- "/"
