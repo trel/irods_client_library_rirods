@@ -143,7 +143,8 @@ get_stat_data_objects <- function(lpath, verbose = FALSE) {
 }
 
 make_stat <- function(lpath, endpoint, verbose) {
-  lpath <- get_absolute_lpath(lpath)
+  # Let the stat endpoint report missing paths directly instead of pre-listing.
+  lpath <- get_absolute_lpath(lpath, safely = FALSE)
   args <- list(
     op = "stat",
     lpath = lpath

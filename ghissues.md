@@ -77,11 +77,13 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 
 ### 7. `#59` Changing directory takes a lot time
 
+- Status: Complete on current branch.
 - Priority: Medium
 - Type: Performance issue
 - Impact: Medium
 - Effort: Medium-High
 - Why later: Important, but performance work is usually less efficient than fixing correctness bugs unless the bottleneck is already obvious and local to this package.
+- Notes: Fixed by removing the redundant `lpath_exists()` safety check inside `make_stat()`, so `icd()` now reaches the HTTP `stat` endpoint directly instead of recursively listing collections first. Added a regression test that fails if relative-path stat resolution falls back to the slow existence scan.
 
 ### 8. `#54` Add support for OIDC
 
@@ -159,10 +161,9 @@ Reason:
 
 Target issues:
 
-- `#59`
+- `#54`
 - `#58`
 - `#61`
-- `#54`
 
 Reason:
 
@@ -187,8 +188,9 @@ Reason:
 3. Treat `#60` as complete on the current branch and avoid duplicating that fix.
 4. Treat `#51` as complete on the current branch and avoid duplicating that fix.
 5. Treat `#55` and `#56` as complete on the current branch and move to the next remaining issue.
+6. Treat `#59` as complete on the current branch and move to the enhancement backlog.
 
 ## Summary
 
-If choosing only one place to start next, move to `#59` "Changing directory takes a lot time".
-The highest-priority `ils()` / navigation bug cluster and the test/auth stabilization issues are complete on the current branch.
+If choosing only one place to start next, move to `#54` "Add support for OIDC".
+The highest-priority `ils()` / navigation bug cluster, the test/auth stabilization issues, and the `icd()` performance issue are complete on the current branch.

@@ -59,7 +59,7 @@ icd <- function(dir) {
 
   new_dir <- resolve_icd_path(dir, current_dir)
 
-  if (!dir %in% c(".", "..") && !is_collection(new_dir)) {
+  if (!dir %in% c(".", "..") && !icd_target_is_collection(new_dir)) {
     stop("This is not a directory (collection).", call. = FALSE)
   }
 
@@ -106,6 +106,15 @@ resolve_icd_path <- function(dir, current_dir) {
     ifelse(current_dir == "/", "", "/"),
     sub("\\./", "", dir)
   )
+}
+
+icd_target_is_collection <- function(lpath) {
+  stat <- try(get_stat_collections(lpath), silent = TRUE)
+  if (inherits(stat, "try-error") || stat$status_code == -170000L) {
+    FALSE
+  } else {
+    stat$type == "collection"
+  }
 }
 
 #' @rdname icd

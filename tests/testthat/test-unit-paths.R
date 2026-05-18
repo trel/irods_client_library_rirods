@@ -128,6 +128,47 @@ test_that("icd resolves paths locally before collection checks", {
   )
 })
 
+test_that("icd checks collection targets via stat without recursive existence scans", {
+  local_restore_rirods_fields("current_dir")
+  .rirods$current_dir <- "/tempZone/home/alice"
+
+  testthat::with_mocked_bindings({
+    expect_invisible(icd("project"))
+    expect_identical(ipwd(), "/tempZone/home/alice/project")
+  },
+  is_connected_irods = function(...) TRUE,
+  lpath_exists = function(...) stop("slow existence scan", call. = FALSE),
+  get_stat_collections = function(...) data.frame(status_code = 0L, type = "collection"),
+  .package = "rirods"
+  )
+})
+
+test_that("get_stat_collections resolves relative paths without recursive scans", {
+  local_restore_rirods_fields("current_dir")
+  .rirods$current_dir <- "/tempZone/home/alice"
+  req <- httr2::request("https://example.test/stat")
+
+  testthat::with_mocked_bindings({
+    testthat::with_mocked_bindings({
+      stat <- get_stat_collections("project")
+      expect_identical(stat$type, "collection")
+    },
+    req_perform = function(req, ...) structure(list(), class = "httr2_response"),
+    resp_body_json = function(resp, ...) list(status_code = 0L, type = "collection"),
+    .package = "httr2"
+    )
+  },
+  irods_http_call = function(endpoint, method, args, verbose) {
+    expect_identical(endpoint, "collections")
+    expect_identical(method, "GET")
+    expect_identical(args$lpath, "/tempZone/home/alice/project")
+    req
+  },
+  lpath_exists = function(...) stop("slow existence scan", call. = FALSE),
+  .package = "rirods"
+  )
+})
+
 test_that("irm errors for unknown logical paths", {
   testthat::with_mocked_bindings({
     expect_error(irm("missing"), "does not resolve")
