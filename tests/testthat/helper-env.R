@@ -14,6 +14,34 @@ test_credentials <- function() {
   }
 }
 
+local_test_session <- function() {
+  fields <- c("token", "user", "user_role", "current_dir")
+  had_value <- vapply(
+    fields,
+    exists,
+    logical(1),
+    envir = .rirods,
+    inherits = FALSE
+  )
+  old_value <- mget(
+    fields,
+    envir = .rirods,
+    inherits = FALSE,
+    ifnotfound = vector("list", length(fields))
+  )
+
+  withr::defer({
+    for (i in seq_along(fields)) {
+      field <- fields[[i]]
+      if (had_value[[i]]) {
+        assign(field, old_value[[i]], envir = .rirods)
+      } else if (exists(field, envir = .rirods, inherits = FALSE)) {
+        rm(list = field, envir = .rirods)
+      }
+    }
+  }, teardown_env())
+}
+
 local_test_config <- function() {
   withr::local_envvar(
     R_USER_CONFIG_DIR = tempdir(),
@@ -50,7 +78,6 @@ online_test_state <- function(user, pass, host) {
   withr::defer(test_irm(paths$irods_test_path_x, "collections"), teardown_env())
 
   icd("testthat")
-  rirods:::get_token(user, pass, rirods:::find_irods_file("host"))
 
   paths
 }
@@ -81,6 +108,7 @@ offline_test_state <- function(user, host) {
 bootstrap_test_state <- function() {
   creds <- test_credentials()
 
+  local_test_session()
   local_test_config()
   dfr <- local_test_file()
 

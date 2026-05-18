@@ -67,3 +67,41 @@ test_that("is_connected_irods is false without a token", {
   rm(list = "token", envir = .rirods)
   expect_false(is_connected_irods())
 })
+
+test_that("online_test_state does not request a second token after iauth", {
+  local_restore_rirods_fields(c("token", "user", "user_role", "current_dir"))
+
+  token_requests <- 0L
+
+  testthat::with_mocked_bindings({
+    testthat::with_mocked_bindings({
+      expect_equal(
+        online_test_state("alice", "secret", "https://example.test"),
+        test_paths("/tempZone/home/alice")
+      )
+    },
+    defer = function(expr, envir) invisible(NULL),
+    .package = "withr"
+    )
+  },
+  create_irods = function(...) NULL,
+  path_to_irods_conf = function() "/tmp/rirods-conf.json",
+  iauth = function(...) {
+    .rirods$user <- "alice"
+    .rirods$user_role <- "rodsuser"
+    .rirods$current_dir <- "/tempZone/home/alice"
+    assign("token", "session-token", envir = .rirods)
+    invisible(NULL)
+  },
+  make_irods_base_path = function(...) "/tempZone/home/alice",
+  lpath_exists = function(...) TRUE,
+  icd = function(...) invisible(NULL),
+  get_token = function(...) {
+    token_requests <<- token_requests + 1L
+    "extra-token"
+  }
+  )
+
+  expect_identical(.rirods$token, "session-token")
+  expect_identical(token_requests, 0L)
+})

@@ -65,11 +65,13 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 
 ### 6. `#56` Testing expires the current authentication
 
+- Status: Complete on current branch.
 - Priority: High
 - Type: Likely bug
 - Impact: Medium
 - Effort: Medium
 - Why next: Painful for contributors and likely connected to the current test configuration model. Important for developer workflow, but slightly less urgent than runtime correctness issues affecting end users.
+- Notes: Fixed by removing the redundant second token request from test bootstrap and restoring `.rirods` session fields after tests so running the suite does not leave the interactive session mutated.
 
 ## Secondary Priority
 
@@ -184,9 +186,9 @@ Reason:
 2. Treat `#62` as complete on the current branch and avoid duplicating that fix.
 3. Treat `#60` as complete on the current branch and avoid duplicating that fix.
 4. Treat `#51` as complete on the current branch and avoid duplicating that fix.
-5. Treat `#55` as complete on the current branch and move to the remaining test/auth issue `#56`.
+5. Treat `#55` and `#56` as complete on the current branch and move to the next remaining issue.
 
 ## Summary
 
-If choosing only one place to start next, move to the remaining test/auth issue: `#56`.
-The highest-priority `ils()` / navigation bug cluster and the hardcoded host issue are complete on the current branch.
+If choosing only one place to start next, move to `#59` "Changing directory takes a lot time".
+The highest-priority `ils()` / navigation bug cluster and the test/auth stabilization issues are complete on the current branch.
