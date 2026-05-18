@@ -211,9 +211,16 @@ ils <- function(
 
   irods_zone_overview <- data.frame(logical_path = lpaths)
 
-  if (isTRUE(stat)) {
+  if (isTRUE(stat) || isTRUE(permissions)) {
     ils_stat_dataframe <- make_ils_stat(irods_zone_overview$logical_path)
-    irods_zone_overview <- cbind(irods_zone_overview, ils_stat_dataframe)
+    if (isTRUE(stat)) {
+      irods_zone_overview <- cbind(irods_zone_overview, ils_stat_dataframe)
+    } else {
+      irods_zone_overview <- cbind(
+        irods_zone_overview,
+        subset_ils_permissions(ils_stat_dataframe)
+      )
+    }
   }
 
   if (isTRUE(metadata)) {
@@ -231,6 +238,19 @@ ils <- function(
 make_ils_stat <- function(lpaths) {
   stat_list <- lapply(lpaths, get_stat)
   Reduce(rbind_unequal_shaped_dataframes, stat_list)
+}
+
+subset_ils_permissions <- function(stat_df) {
+  stat_df[, intersect(
+    c(
+      "inheritance_enabled",
+      "permissions.name",
+      "permissions.perm",
+      "permissions.type",
+      "permissions.zone"
+    ),
+    names(stat_df)
+  ), drop = FALSE]
 }
 
 make_ils_metadata <- function(lpath) {
@@ -292,9 +312,20 @@ rbind_unequal_shaped_dataframes <- function(df1, df2) {
 get_stat <- function(lpath) {
   stat_collection <- try(get_stat_collections(lpath), silent = TRUE)
   stat_data_object <- try(get_stat_data_objects(lpath), silent = TRUE)
+
+  if (inherits(stat_collection, "try-error")) {
+    return(stat_data_object)
+  }
+
+  if (inherits(stat_data_object, "try-error")) {
+    return(stat_collection)
+  }
+
   if (stat_collection$status_code == -170000L) {
     return(stat_data_object)
   } else if (stat_data_object$status_code == -171000L) {
     return(stat_collection)
   }
+
+  stat_collection
 }

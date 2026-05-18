@@ -219,6 +219,101 @@ test_that("ils returns all entries by default and only limits when requested", {
   expect_equal(out_limited$logical_path, entries[seq_len(15)])
 })
 
+test_that("get_stat handles try-error results for mixed entry types", {
+  object_stat <- data.frame(
+    status_code = 0L,
+    type = "data_object",
+    permissions.name = "alice",
+    permissions.perm = "own",
+    permissions.type = "rodsuser",
+    permissions.zone = "tempZone"
+  )
+
+  testthat::with_mocked_bindings({
+    expect_equal(get_stat("/tempZone/home/alice/data.csv"), object_stat)
+  },
+  get_stat_collections = function(...) stop("not a collection", call. = FALSE),
+  get_stat_data_objects = function(...) object_stat,
+  .package = "rirods"
+  )
+})
+
+test_that("get_stat returns collection stat when object stat errors", {
+  collection_stat <- data.frame(
+    status_code = 0L,
+    type = "collection",
+    inheritance_enabled = FALSE,
+    permissions.name = "alice",
+    permissions.perm = "own",
+    permissions.type = "rodsuser",
+    permissions.zone = "tempZone"
+  )
+
+  testthat::with_mocked_bindings({
+    expect_equal(get_stat("/tempZone/home/alice/project"), collection_stat)
+  },
+  get_stat_collections = function(...) collection_stat,
+  get_stat_data_objects = function(...) stop("not a data object", call. = FALSE),
+  .package = "rirods"
+  )
+})
+
+test_that("get_stat defaults to collection stat when both stats succeed", {
+  collection_stat <- data.frame(status_code = 0L, type = "collection")
+  object_stat <- data.frame(status_code = 0L, type = "data_object")
+
+  testthat::with_mocked_bindings({
+    expect_equal(get_stat("/tempZone/home/alice/project"), collection_stat)
+  },
+  get_stat_collections = function(...) collection_stat,
+  get_stat_data_objects = function(...) object_stat,
+  .package = "rirods"
+  )
+})
+
+test_that("ils permissions uses stat data without full stat columns", {
+  req <- httr2::request("https://example.test/list")
+  entries <- c("/tempZone/home/alice/project", "/tempZone/home/alice/data.csv")
+  stat_df <- data.frame(
+    inheritance_enabled = c(FALSE, NA),
+    status_code = c(0L, 0L),
+    modified_at = c("1", "2"),
+    permissions.name = c("alice", "alice"),
+    permissions.perm = c("own", "read_object"),
+    permissions.type = c("rodsuser", "rodsuser"),
+    permissions.zone = c("tempZone", "tempZone"),
+    registered = c(TRUE, TRUE),
+    type = c("collection", "data_object")
+  )
+
+  testthat::with_mocked_bindings({
+    testthat::with_mocked_bindings({
+      out <- ils(permissions = TRUE)
+    },
+    req_perform = function(req, ...) structure(list(), class = "httr2_response"),
+    resp_body_json = function(resp, check_type = FALSE, simplifyVector = TRUE) list(entries = entries),
+    .package = "httr2"
+    )
+  },
+  irods_http_call = function(...) req,
+  make_ils_stat = function(...) stat_df,
+  new_irods_df = function(x) x,
+  .package = "rirods"
+  )
+
+  expect_equal(
+    names(out),
+    c(
+      "logical_path",
+      "inheritance_enabled",
+      "permissions.name",
+      "permissions.perm",
+      "permissions.type",
+      "permissions.zone"
+    )
+  )
+})
+
 test_that("make_ils_metadata aligns mixed collection and object metadata rows", {
   collection_meta <- data.frame(
     COLL_NAME = "/tempZone/home/alice/project",

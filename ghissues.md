@@ -45,11 +45,13 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 
 ### 4. `#63` `ils(stat=TRUE)` and `ils(permissions=TRUE)` fail with an error when used on large collections
 
+- Status: Complete on current branch.
 - Priority: Very High
 - Type: Bug
 - Impact: High
 - Effort: Medium
 - Why next: Breaks important `ils()` options for larger collections. Likely shares implementation surface with the other `ils()` bugs, so it is efficient to tackle alongside them.
+- Notes: Fixed by making `get_stat()` robust when one stat lookup returns a `try-error` and by routing `permissions = TRUE` through the stat information path with only the permission-related columns.
 
 ### 5. `#55` Hardcoded API URL
 
@@ -179,10 +181,10 @@ Reason:
 1. Review PR `#52` before starting new work.
 2. Treat `#62` as complete on the current branch and avoid duplicating that fix.
 3. Treat `#60` as complete on the current branch and avoid duplicating that fix.
-4. Treat `#51` as complete on the current branch and avoid duplicating that fix. Inspect remaining `ils()` failure modes for `#63`.
-5. After the remaining `ils()` cluster is stable, move to test/auth issues `#55` and `#56`.
+4. Treat `#51` as complete on the current branch and avoid duplicating that fix.
+5. After the `ils()` cluster is stable, move to test/auth issues `#55` and `#56`.
 
 ## Summary
 
-If choosing only one place to start next, continue with the remaining `ils()` / navigation bug cluster: `#63`.
-That is the best combination of high user impact, bug priority, and likely shared implementation effort.
+If choosing only one place to start next, move to the test/auth issues: `#55` and `#56`.
+The highest-priority `ils()` / navigation bug cluster is complete on the current branch.
