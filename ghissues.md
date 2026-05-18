@@ -129,6 +129,16 @@ Goal: prioritize open issues by balancing impact against effort, with an explici
 - Effort: High
 - Why later: Large scope, unclear near-term user value, and not a pressing correctness issue.
 
+### 13. `#16` new `ichksum` function
+
+- Status: Complete on current branch.
+- Priority: Medium-Low
+- Type: Enhancement
+- Impact: Medium
+- Effort: Medium
+- Why later: Useful for integrity workflows and now appears implementable via the existing HTTP API `calculate_checksum` support, but it still needs package-level API design around options such as checksum algorithm and should follow the higher-value enhancement backlog.
+- Notes: Fixed by adding `ichksum()` as a wrapper over the HTTP API `calculate_checksum` operation for data objects, returning the checksum string from the server and resolving logical paths consistently with other object helpers. Added a regression test for the exported function and updated package documentation.
+
 ## Recommended Execution Strategy
 
 ### Phase 1: Stabilize `ils()` and path behavior
@@ -191,6 +201,7 @@ Reason:
 5. Treat `#55` and `#56` as complete on the current branch and move to the next remaining issue.
 6. Treat `#59` as complete on the current branch and move to the enhancement backlog.
 7. Treat `#58` as complete on the current branch and keep `#54` as the next recommended issue.
+8. Treat `#16` as complete on the current branch and keep `#54` as the next recommended issue.
 
 ## Summary
 

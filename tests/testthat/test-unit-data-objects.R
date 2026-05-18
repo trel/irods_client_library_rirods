@@ -238,3 +238,23 @@ test_that("iget and ireadRDS work with offline request mocks", {
   .package = "rirods"
   )
 })
+
+test_that("ichksum resolves the logical path and returns the server checksum", {
+  local_restore_rirods_fields("token")
+  assign("token", "secret", envir = .rirods)
+
+  testthat::with_mocked_bindings({
+    out <- ichksum(
+      "remote.csv",
+      resource = "demoResc",
+      replica_number = 2L,
+      force = TRUE,
+      verbose = TRUE
+    )
+    expect_identical(out, "sha2:abcdef")
+  },
+  req_perform = function(req, ...) structure(list(), class = "httr2_response"),
+  resp_body_json = function(resp, ...) list(checksum = "sha2:abcdef"),
+  .package = "httr2"
+  )
+})

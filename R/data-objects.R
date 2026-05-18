@@ -560,6 +560,74 @@ ireadRDS <- function(
   unserialize(con)
 }
 
+#' Calculate or Retrieve a Data Object Checksum in iRODS
+#'
+#' Request the checksum for a data object from the iRODS server using the
+#' HTTP API `calculate_checksum` operation.
+#'
+#' @param logical_path Path to the data object in iRODS.
+#' @param resource Optional resource name identifying the replica to checksum.
+#' @param replica_number Optional replica number identifying the replica to
+#'   checksum.
+#' @param force Whether any existing checksum should be recalculated. Defaults
+#'   to `FALSE`.
+#' @param verbose Whether information should be printed about the HTTP request
+#'   and response. Defaults to `FALSE`.
+#'
+#' @return A checksum string.
+#' @seealso [iput()] for storing files and [iget()] for retrieving them.
+#' @export
+#'
+#' @examplesIf is_irods_demo_running()
+#' is_irods_demo_running()
+#' \dontshow{
+#' .old_config_dir <- Sys.getenv("R_USER_CONFIG_DIR")
+#' .old_wd <- setwd(tempdir())
+#' Sys.setenv("R_USER_CONFIG_DIR" = tempdir())
+#' }
+#' # connect project to server
+#' \Sexpr[stage=build, results=rd]{paste0("create_irods(\"", rirods:::.irods_host, "\")")}
+#'
+#' # authenticate
+#' iauth("rods", "rods")
+#'
+#' # save a file and request its checksum
+#' write.csv(iris, "iris.csv")
+#' iput("iris.csv", "iris.csv")
+#' ichksum("iris.csv")
+#'
+#' # clean up
+#' irm("iris.csv", force = TRUE)
+#' \dontshow{
+#' setwd(.old_wd)
+#' Sys.setenv("R_USER_CONFIG_DIR" = .old_config_dir)
+#' }
+ichksum <- function(
+    logical_path,
+    resource = NULL,
+    replica_number = NULL,
+    force = FALSE,
+    verbose = FALSE
+) {
+
+  logical_path <- get_absolute_lpath(logical_path, safely = FALSE)
+
+  args <- list(
+    op = "calculate_checksum",
+    lpath = logical_path,
+    resource = resource,
+    `replica-number` = replica_number,
+    force = as.integer(force)
+  )
+
+  resp <- irods_http_call("data-objects", "POST", args, verbose) |>
+    httr2::req_perform() |>
+    httr2::resp_body_json() |>
+    unlist()
+
+  resp[["checksum"]]
+}
+
 irods_to_local <- function(logical_path, ticket, verbose) {
 
   # flags to curl call
