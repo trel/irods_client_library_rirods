@@ -1,10 +1,10 @@
-# prepare for CRAN by removing unneeded irods_demo bagage
+# prepare for CRAN by removing unneeded irods_demo baggage
 .ONESHELL:
-SHELL = /bin/bash
+SHELL = /bin/sh
 PATH_MODULES := ../inst/irods_demo
-DOCKER_MODULES := $(addprefix $(PATH_MODULES)/,irods_client_nfsrods irods_client_zone_management_tool metalnx-db metalnx minio-data)
+DOCKER_MODULES := $(addprefix $(PATH_MODULES)/,grafana irods_catalog_consumer irods_client_nfsrods irods_client_s3_api irods_client_zone_management_tool metalnx metalnx-db minio-data prometheus sql_exporter)
 
-all: update remove clean
+all: update remove
 
 # update modules
 update:
@@ -13,7 +13,3 @@ update:
 # delete unnecessary docker modules
 remove:
 	rm -rf $(DOCKER_MODULES)
-# remove lines docker-compose
-clean:
-	head -n 65 '$(PATH_MODULES)/docker-compose.yml' > temp.yml
-	mv temp.yml '$(PATH_MODULES)/docker-compose.yml'

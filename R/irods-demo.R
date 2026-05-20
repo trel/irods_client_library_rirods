@@ -3,9 +3,7 @@
 #' Run an iRODS demonstration server with `use_irods_demo()` as a Docker
 #' container instance. The function `stop_irods_demo()` stops the containers.
 #'
-#' These functions are untested on Windows and macOS and require:
-#'  * `bash`
-#'  * `docker`
+#' These functions are untested on Windows and macOS and require Docker.
 #'
 #' @param user Character vector for user name (defaults to "rods" admin)
 #' @param pass Character vector for password (defaults to "rods" admin password)
@@ -36,12 +34,13 @@
 #'
 use_irods_demo <- function(user = character(), pass = character(),
                            recreate = FALSE, verbose = TRUE) {
+  host <- demo_irods_host()
 
   # is Docker installed
   if (!check_docker()) {
     stop(
-      "Bash and Docker are required. \n",
-      "Install bash and docker to commence. Alternatively, sudo rights \n",
+      "Docker is required. \n",
+      "Install docker to commence. Alternatively, sudo rights \n",
       "are required for Docker: please check: \n",
       "https://docs.docker.com/engine/install/linux-postinstall/",
       call. = FALSE
@@ -81,7 +80,7 @@ use_irods_demo <- function(user = character(), pass = character(),
   dry_run_irods(
     user,
     pass,
-    .irods_host,
+    host,
     paste0("/tempZone/home/", user),
     verbose
   )
@@ -89,7 +88,7 @@ use_irods_demo <- function(user = character(), pass = character(),
   message(
     "\n",
     "Do the following to connect with the iRODS demo server: \n",
-    "create_irods(\"", .irods_host, "\") \n",
+    "create_irods(\"", host, "\") \n",
     "iauth(\"", user, "\", \"", pass, "\")"
   )
 
@@ -100,7 +99,7 @@ use_irods_demo <- function(user = character(), pass = character(),
 #' @export
 stop_irods_demo <- function(verbose = TRUE) {
   system(
-    paste0("cd ", path_to_demo(), " ; docker compose down"),
+    demo_compose_command("down"),
     ignore.stdout = !verbose,
     ignore.stderr = !verbose
   )
@@ -162,19 +161,30 @@ remove_docker_images <- function() {
 }
 
 start_irods <- function(verbose, recreate = TRUE) {
+  args <- c("up", "-d")
   if (isTRUE(recreate)) {
-    cmd <- " ; docker compose up -d --force-recreate nginx-reverse-proxy irods-client-http-api irods-client-icommands"
-  } else {
-    cmd <- " ; docker compose up -d nginx-reverse-proxy irods-client-http-api irods-client-icommands"
+    args <- c(args, "--force-recreate")
   }
+  args <- c(args, demo_start_services)
+
   system(
-    paste0("cd ", path_to_demo(), cmd),
+    demo_compose_command(paste(args, collapse = " ")),
     ignore.stdout = !verbose,
     ignore.stderr = !verbose
   )
 }
 
 path_to_demo <- function() system.file("irods_demo", package = "rirods")
+
+path_to_demo_compose <- function() {
+  system.file("docker-compose.rirods.yml", package = "rirods")
+}
+
+demo_compose_command <- function(args) {
+  paste("docker compose -f", shQuote(path_to_demo_compose()), args)
+}
+
+demo_irods_host <- function() "http://localhost:9001/irods-http-api/0.6.0"
 
 # perform dry run to see if iRODS can be used
 dry_run_irods <- function(user, pass, host, lpath, verbose, user_input = FALSE) {
@@ -259,23 +269,30 @@ check_docker <- function(verbose = TRUE) {
   # check if Docker is installed and can be accessed without sudo rights
   docker_version <- system("docker --version", ignore.stdout = !verbose,
                            ignore.stderr = !verbose)
-  !(Sys.which("bash") == "" || Sys.which("docker") == "" || docker_version == "")
+  !(Sys.which("docker") == "" || docker_version == "")
 }
 
 irods_containers_ref <- function() {
-  irods_demo_yml <- system.file("irods_demo", "docker-compose.yml", package = "rirods")
-  irods_demo_file <- readLines(irods_demo_yml)
-  irods_images_ref <- grep("^\\s{4}[[:graph:]]*?:$", irods_demo_file)
-  irods_images <- irods_demo_file[irods_images_ref]
-  paste0("irods-demo-", trimws(gsub( ":$", "", irods_images)), "-1")
+  paste0("irods-demo-", demo_services, "-1")
 }
+
+demo_services <- c(
+  "irods-catalog",
+  "irods-catalog-provider",
+  "irods-client-icommands",
+  "irods-client-http-api",
+  "minio"
+)
+
+demo_start_services <- c(
+  "irods-client-http-api",
+  "irods-client-icommands"
+)
 
 irods_images <- c(
   "irods-demo-irods-catalog",
   "irods-demo-irods-catalog-provider",
   "irods-demo-irods-client-icommands",
-  "irods-demo-irods-client-rest-cpp",
-  "irods-demo-nginx-reverse-proxy",
   "irods/irods_http_api"
 )
 
@@ -285,7 +302,7 @@ irods_images <- c(
 #' package source files.
 #'
 #' @param host Hostname of the iRODS server. Defaults to
-#'  ""http://localhost:9001/irods-http-api/0.1.0".
+#'  [default_irods_host()].
 #' @param dir The directory to use. Default is a temporary directory.
 #' @param env Attach exit handlers to this environment. Defaults to the
 #'  parent frame (accessed through [parent.frame()]).

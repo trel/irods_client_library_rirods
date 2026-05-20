@@ -29,7 +29,7 @@ devtools::install_github("irods/irods_client_library_rirods")
 
 ## Prerequisites
 
-This package talks to the iRODS C++ HTTP API (currently `0.2.0`):
+This package talks to the iRODS C++ HTTP API:
 https://github.com/irods/irods_client_http_api.
 
 You need access to a running iRODS HTTP API endpoint before you can
@@ -45,10 +45,10 @@ use_irods_demo("alice", "passWORD")
 ```
 
 This will result in the demonstration HTTP API running at
-http://localhost:9001/irods-http-api/0.2.0.
+`http://localhost:9001/irods-http-api/0.6.0`.
 
-`use_irods_demo()` is intended for local exploration and requires `bash`
-and `docker`. It is currently untested on Windows and macOS.
+`use_irods_demo()` is intended for local exploration and requires
+`docker`. It is currently untested on Windows and macOS.
 
 These Docker containers are designed to easily stand up a
 **DEMONSTRATION** of the iRODS server. It is intended for education and
@@ -62,7 +62,7 @@ To connect to the HTTP API endpoint of your choice, load `rirods`,
 connect with `create_irods()`, and authenticate with your iRODS
 credentials:
 
-    create_irods("http://localhost:9001/irods-http-api/0.2.0")
+    create_irods("http://localhost:9001/irods-http-api/0.6.0")
 
 `create_irods()` stores the endpoint in your user configuration
 directory so future R sessions can reuse it. If you want the HTTP API to

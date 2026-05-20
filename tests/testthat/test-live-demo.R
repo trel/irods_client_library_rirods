@@ -23,11 +23,7 @@ test_that("irods demo works on linux", {
   expect_false(is_http_server_running_correct(user, pass, host, irods_test_path))
 
   system(
-    paste0(
-      "cd ",
-      path_to_demo(),
-      "; docker compose up -d irods-client-icommands"
-    ),
+    demo_compose_command("up -d irods-client-icommands"),
     ignore.stdout = TRUE,
     ignore.stderr = TRUE
   )
