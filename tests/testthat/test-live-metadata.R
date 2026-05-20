@@ -104,3 +104,55 @@ test_that("collection and object metadata shapes are handled live", {
   expect_s3_class(cleared, "irods_df")
   expect_false(any(c("attribute", "value", "units") %in% colnames(as.data.frame(cleared))))
 })
+
+test_that("query options cover paging, parser, and case handling live", {
+  skip_if_no_live_irods()
+  skip_if(!is_irods_demo_running(), "Live iRODS demo is not running.")
+  skip_if(.rirods$token == "secret", "IRODS server unavailable")
+
+  object_a <- paste0(irods_test_path, "/query-a.csv")
+  object_b <- paste0(irods_test_path, "/query-b.csv")
+
+  withr::defer(if (lpath_exists(object_a)) test_irm(object_a))
+  withr::defer(if (lpath_exists(object_b)) test_irm(object_b))
+
+  test_iput(object_a)
+  test_iput(object_b)
+
+  expect_invisible(imeta(
+    "query-a.csv",
+    operations = list(list(operation = "add", attribute = "LiveScope", value = "alpha"))
+  ))
+  expect_invisible(imeta(
+    "query-b.csv",
+    operations = list(list(operation = "add", attribute = "livescope", value = "beta"))
+  ))
+
+  expect_warning(
+    case_insensitive <- iquery(
+      paste0(
+        "SELECT COLL_NAME, DATA_NAME, META_DATA_ATTR_NAME WHERE COLL_NAME = '",
+        irods_test_path,
+        "' AND META_DATA_ATTR_NAME = 'livescope'"
+      ),
+      type = "general",
+      case_sensitive = FALSE,
+      distinct = FALSE,
+      parser = "genquery1"
+    ),
+    "deprecated"
+  )
+  expect_s3_class(case_insensitive, "data.frame")
+  expect_true(nrow(case_insensitive) >= 1L)
+  expect_true("query-b.csv" %in% case_insensitive$DATA_NAME)
+
+  paged <- iquery(
+    paste0("SELECT COLL_NAME, DATA_NAME WHERE COLL_NAME = '", irods_test_path, "'"),
+    limit = 1,
+    offset = 1,
+    distinct = FALSE,
+    parser = "genquery1"
+  )
+  expect_s3_class(paged, "data.frame")
+  expect_identical(nrow(paged), 1L)
+})

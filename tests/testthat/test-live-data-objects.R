@@ -70,3 +70,31 @@ test_that("checksum requests and local overwrite protection work", {
   unlink(local_copy)
   test_irm(paste0(irods_test_path, "/checksum.csv"))
 })
+
+test_that("single-request transfers cover direct file and R object paths", {
+  skip_if_no_live_irods()
+  skip_if(!is_irods_demo_running(), "Live iRODS demo is not running.")
+  skip_if(.rirods$token == "secret", "IRODS server unavailable")
+
+  local_csv <- tempfile(fileext = ".csv")
+  local_copy <- tempfile(fileext = ".csv")
+  small_obj <- list(alpha = 1:3, beta = c("x", "y", "z"))
+
+  writeLines(c("a,b", "1,2", "3,4"), local_csv)
+  writeLines("stale", local_copy)
+
+  withr::defer(unlink(local_csv))
+  withr::defer(unlink(local_copy))
+  withr::defer(if (lpath_exists(paste0(irods_test_path, "/single.csv"))) test_irm(paste0(irods_test_path, "/single.csv")))
+  withr::defer(if (lpath_exists(paste0(irods_test_path, "/single.rds"))) test_irm(paste0(irods_test_path, "/single.rds")))
+
+  expect_warning(iput(local_csv, "single.csv", offset = 0, overwrite = TRUE), "deprecated")
+  expect_warning(isaveRDS(small_obj, "single.rds", count = 0, overwrite = TRUE), "deprecated")
+
+  expect_warning(iget("single.csv", local_copy, count = 0, overwrite = TRUE), "deprecated")
+  expect_true(file.exists(local_copy))
+  expect_true(any(grepl("a,b", readLines(local_copy))))
+
+  expect_warning(restored <- ireadRDS("single.rds", offset = 0), "deprecated")
+  expect_equal(restored, small_obj)
+})

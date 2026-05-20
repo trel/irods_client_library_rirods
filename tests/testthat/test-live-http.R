@@ -71,3 +71,25 @@ test_that("all operation for data objects 200 OK", {
     httr2::req_perform()
   expect_equal(resp$status_code, 200L)
 })
+
+test_that("http request helpers expose live error details", {
+  skip_if_no_live_irods()
+  skip_if(!is_irods_demo_running(), "Live iRODS demo is not running.")
+  skip_if(.rirods$token == "secret", "IRODS server unavailable")
+
+  req <- irods_http_call(
+    "data-objects",
+    "GET",
+    list(op = "definitely_invalid", lpath = paste0(irods_test_path, "/missing.csv")),
+    verbose = TRUE,
+    error = FALSE
+  )
+  resp <- tryCatch(
+    httr2::req_perform(req),
+    error = function(cnd) cnd$resp
+  )
+
+  expect_gte(resp$status_code, 400L)
+  expect_type(irods_errors(resp), "character")
+  expect_gt(nchar(paste(irods_errors(resp), collapse = " ")), 0L)
+})
