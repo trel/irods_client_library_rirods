@@ -46,3 +46,39 @@ test_that("collections, navigation, listing, print, and limits work", {
   expect_invisible(irm("nav", recursive = TRUE, force = TRUE))
   expect_invisible(irm("empty", recursive = TRUE, force = TRUE))
 })
+
+test_that("path helpers resolve relative and absolute live paths", {
+  skip_if_no_live_irods()
+  skip_if(!is_irods_demo_running(), "Live iRODS demo is not running.")
+  skip_if(.rirods$token == "secret", "IRODS server unavailable")
+
+  old_dir <- ipwd()
+  paths_collection <- paste0(irods_test_path, "/paths")
+  abs_item <- paste0(paths_collection, "/item.csv")
+  withr::defer(icd(old_dir))
+  withr::defer(if (lpath_exists(paths_collection)) test_irm(paths_collection, "collections"))
+
+  expect_invisible(imkdir("paths/sub", create_parent_collections = TRUE))
+  test_iput(abs_item)
+
+  expect_true(is_collection("paths"))
+  expect_true(is_collection("paths/sub"))
+  expect_false(is_collection("paths/item.csv"))
+  expect_true(is_object("paths/item.csv"))
+  expect_false(is_object("paths"))
+
+  expect_true(lpath_exists("paths"))
+  expect_true(lpath_exists("paths/sub"))
+  expect_true(lpath_exists("paths/item.csv"))
+  expect_false(lpath_exists("paths/missing.csv"))
+
+  expect_true(lpath_exists(abs_item))
+
+  expect_invisible(icd("paths"))
+  expect_identical(get_absolute_lpath("sub"), paste0(irods_test_path, "/paths/sub"))
+  expect_identical(get_absolute_lpath(abs_item), abs_item)
+  expect_error(get_absolute_lpath("missing.csv"), "not accessible")
+
+  expect_error(stop_irods_overwrite(FALSE, "item.csv"), "already exists")
+  expect_null(stop_irods_overwrite(TRUE, "item.csv"))
+})

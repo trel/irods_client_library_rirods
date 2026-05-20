@@ -37,3 +37,70 @@ test_that("metadata query columns are ok", {
 
   test_irm(paste0(irods_test_path, "/dfr.csv"))
 })
+
+test_that("collection and object metadata shapes are handled live", {
+  skip_if_no_live_irods()
+  skip_if(!is_irods_demo_running(), "Live iRODS demo is not running.")
+  skip_if(.rirods$token == "secret", "IRODS server unavailable")
+
+  collection_path <- paste0(irods_test_path, "/meta-child")
+  object_path <- paste0(irods_test_path, "/meta-object.csv")
+  collection_ops <- data.frame(
+    operation = "add",
+    attribute = "scope",
+    value = "collection",
+    units = "zone"
+  )
+  object_ops <- list(list(operation = "add", attribute = "scope", value = "object"))
+
+  withr::defer(if (lpath_exists(collection_path)) test_irm(collection_path, "collections"))
+  withr::defer(if (lpath_exists(object_path)) test_irm(object_path))
+
+  expect_invisible(imkdir("meta-child", create_parent_collections = TRUE))
+  test_iput(object_path)
+
+  expect_invisible(imeta("meta-child", operations = collection_ops))
+  collection_only <- ils(metadata = TRUE)
+  expect_s3_class(collection_only, "irods_df")
+  expect_true(any(collection_only$logical_path == collection_path))
+  expect_true(any(collection_only$attribute == "scope" & collection_only$value == "collection"))
+  expect_false(any(
+    collection_only$logical_path == object_path & collection_only$value == "object",
+    na.rm = TRUE
+  ))
+
+  expect_invisible(imeta(
+    "meta-child",
+    operations = list(list(operation = "remove", attribute = "scope", value = "collection", units = "zone"))
+  ))
+  expect_invisible(imeta("meta-object.csv", operations = object_ops))
+
+  object_only <- ils(metadata = TRUE)
+  expect_s3_class(object_only, "irods_df")
+  expect_true(any(object_only$logical_path == object_path))
+  expect_true(any(object_only$attribute == "scope" & object_only$value == "object"))
+  expect_false(any(
+    object_only$logical_path == collection_path & object_only$value == "collection",
+    na.rm = TRUE
+  ))
+
+  expect_invisible(imeta("meta-child", operations = collection_ops))
+  mixed <- ils(metadata = TRUE)
+  expect_s3_class(mixed, "irods_df")
+  expect_true(all(c(collection_path, object_path) %in% mixed$logical_path))
+  expect_true(any(mixed$value == "collection"))
+  expect_true(any(mixed$value == "object"))
+
+  expect_invisible(imeta(
+    "meta-child",
+    operations = list(list(operation = "remove", attribute = "scope", value = "collection", units = "zone"))
+  ))
+  expect_invisible(imeta(
+    "meta-object.csv",
+    operations = list(list(operation = "remove", attribute = "scope", value = "object"))
+  ))
+
+  expect_message(cleared <- ils(metadata = TRUE), "No metadata")
+  expect_s3_class(cleared, "irods_df")
+  expect_false(any(c("attribute", "value", "units") %in% colnames(as.data.frame(cleared))))
+})
