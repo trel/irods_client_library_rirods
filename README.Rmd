@@ -27,17 +27,7 @@ knitr::opts_knit$set(
 [![R-CMD-check](https://github.com/irods/irods_client_library_rirods/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/irods/irods_client_library_rirods/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
 
-The rirods package is an R client for iRODS.
-
-## Development
-
-Run line coverage for the offline-capable test suite with:
-
-```sh
-Rscript --no-init-file scripts/test-coverage.R
-```
-
-This writes coverage artifacts under `coverage/` and is the same command used by GitHub Actions.
+The rirods package is an R client for iRODS over the iRODS HTTP API.
 
 ## Installation
 
@@ -56,7 +46,10 @@ devtools::install_github("irods/irods_client_library_rirods")
 
 ## Prerequisites
 
-This package connects to the iRODS C++ HTTP API - https://github.com/irods/irods_client_http_api.
+This package talks to the iRODS C++ HTTP API (currently `0.2.0`):
+https://github.com/irods/irods_client_http_api.
+
+You need access to a running iRODS HTTP API endpoint before you can authenticate or transfer data.
 
 Launch a local demonstration iRODS service (including the HTTP API):
 
@@ -77,6 +70,8 @@ unlink(rirods:::path_to_irods_conf())
 
 This will result in the demonstration HTTP API running at `r URLencode(rirods:::.irods_host)`.
 
+`use_irods_demo()` is intended for local exploration and requires `bash` and `docker`. It is currently untested on Windows and macOS.
+
 These Docker containers are designed to easily stand up a **DEMONSTRATION** of the iRODS server. It is intended for education and exploration. (See also `vignette("demo")`.)
 
 **DO NOT USE IN PRODUCTION**
@@ -92,6 +87,10 @@ substitute(create_irods(x), list(x = rirods:::.irods_host))
 ```{r project, eval=is_irods_demo_running(), echo=FALSE}
 eval(substitute(create_irods(x), list(x = rirods:::.irods_host)))
 ```
+
+`create_irods()` stores the endpoint in your user configuration directory so future R sessions can reuse it. If you want the HTTP API to receive a client identifier in audit logs, you can also set `client_name = "..."`.
+
+After that, `iauth()` authenticates the current R session and `ipwd()` / `icd()` manage the current iRODS collection. This is separate from your local working directory returned by `getwd()`.
 
 ### Authentication
 
@@ -213,3 +212,31 @@ stop_irods_demo()
 # optionally remove the Docker images
 # irods:::remove_docker_images()
 ```
+
+## Further Reading
+
+- `vignette("demo")` for the local Docker-based demo environment.
+- `vignette("metadata")` for metadata and query workflows.
+- `vignette("local-irods")` for moving between local files and iRODS.
+- `vignette("icommands")` for a mapping between `{rirods}` functions and iCommands.
+- `vignette("develop")` for contributor setup and development notes.
+
+## Development
+
+The coverage scripts require `covr`.
+
+Run line coverage for the offline-capable test suite with:
+
+```sh
+Rscript --no-init-file scripts/test-coverage.R
+```
+
+This writes coverage artifacts under `coverage/` and is the same command used by GitHub Actions for ordinary checks.
+
+Run live coverage against a real iRODS HTTP API with:
+
+```sh
+Rscript --no-init-file scripts/test-live-coverage.R
+```
+
+This writes coverage artifacts under `coverage-live/` and requires the encrypted live-test environment variables `DEV_KEY_IRODS`, `DEV_HOST_IRODS`, `DEV_USER`, and `DEV_PASS`. See `vignette("develop")` for the full setup.
