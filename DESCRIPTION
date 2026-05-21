@@ -1,6 +1,6 @@
 Package: rirods
 Title: R Client for 'iRODS'
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person("Martin", "Schobben", , "schobbenmartin@gmail.com", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0001-8560-0037")),
